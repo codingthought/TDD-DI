@@ -16,7 +16,8 @@ public class Container {
         MAP.put(type, () -> instance);
     }
 
-    public <Type> void bind(Class<Type> type, Class<? extends Type> implType) {
+    public <Type, Impl extends Type> void bind(Class<Type> type, Class<? extends Type> implType) {
+        Constructor<?> constructor = null;
         Constructor<?>[] declaredConstructors = implType.getDeclaredConstructors();
         List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
                 .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
@@ -27,17 +28,18 @@ public class Container {
                 Arrays.stream(declaredConstructors).allMatch(d -> d.getParameterTypes().length > 0)) {
             throw new IllegalComponentException();
         }
-        MAP.put(type, () -> newInstance(implType));
+        if (filteredConstructors.size() == 1) {
+            constructor = filteredConstructors.get(0);
+        }
+        if (filteredConstructors.size() == 0) {
+            constructor = declaredConstructors[0];
+        }
+        Constructor<Impl> finalConstructor = (Constructor<Impl>) constructor;
+        MAP.put(type, () -> newInstanceWith(finalConstructor));
     }
 
     public <Type> Type get(Class<Type> type) {
         return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get()).orElse(null);
-    }
-
-    private <Type> Type newInstance(Class<? extends Type> implType) {
-        Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
-        return Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
-                .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
     }
 
     private <Type> Type newInstanceWith(Constructor<Type> c) {
