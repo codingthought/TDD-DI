@@ -19,6 +19,14 @@ public class ContainerTest {
             assertSame(componentImpl, container.get(Component.class));
         }
 
+        @Test
+        void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
+            Container container = new Container();
+            container.bind(Component.class, ComponentNoDependency.class);
+
+            assertNotNull(container.get(Component.class));
+            assertTrue(container.get(Component.class) instanceof Component);
+        }
     }
 
 
@@ -34,5 +42,9 @@ public class ContainerTest {
 }
 
 interface Component {
+
+}
+
+class ComponentNoDependency implements Component {
 
 }

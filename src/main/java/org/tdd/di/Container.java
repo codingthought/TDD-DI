@@ -14,4 +14,6 @@ public class Container {
         return (Type) INSTANCE_MAP.get(type);
     }
 
+    public <Type> void bind(Class<Type> type, Class<? extends Type>  subType) {
+    }
 }
