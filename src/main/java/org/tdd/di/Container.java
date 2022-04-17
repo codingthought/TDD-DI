@@ -20,8 +20,9 @@ public class Container {
     }
 
     public <Type> Type get(Class<Type> type) {
-        return Optional.ofNullable((Type) INSTANCE_MAP.get(type)).orElseGet(() -> {
-            Class<?> implType = TYPE_BIND_MAP.get(type);
+        Class<?> implType = TYPE_BIND_MAP.get(type);
+        Object instance = INSTANCE_MAP.get(type);
+        return Optional.ofNullable((Type) instance).orElseGet(() -> {
             Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
             return Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
                     .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
