@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.tdd.di.exception.IllegalComponentException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -68,7 +69,13 @@ public class ContainerTest {
                 assertEquals("dependency", ((ComponentDependencyString) dependency).getDependency());
             }
 
-            class ComponentWithDependency implements AnotherComponent {
+            @Test
+            void should_throw_Exception_when_bind_if_multi_inject_constructor_provided() {
+                assertThrows(IllegalComponentException.class, () ->
+                        container.bind(Component.class, ComponentWithMultiInjectConstructor.class));
+            }
+
+            private class ComponentWithDependency implements AnotherComponent {
                 @Inject
                 public ComponentWithDependency(Component dependency) {
                     this.dependency = dependency;
@@ -81,7 +88,7 @@ public class ContainerTest {
                 }
             }
 
-            class ComponentDependencyString implements Component {
+            private class ComponentDependencyString implements Component {
                 @Inject
                 public ComponentDependencyString(String dependency) {
                     this.dependency = dependency;
@@ -91,6 +98,16 @@ public class ContainerTest {
 
                 public String getDependency() {
                     return dependency;
+                }
+            }
+
+            private class ComponentWithMultiInjectConstructor implements Component {
+                @Inject
+                public ComponentWithMultiInjectConstructor(String name) {
+                }
+
+                @Inject
+                public ComponentWithMultiInjectConstructor(Integer id) {
                 }
             }
         }
