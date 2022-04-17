@@ -17,7 +17,7 @@ public class Container {
     }
 
     public <Type, Impl extends Type> void bind(Class<Type> type, Class<? extends Type> implType) {
-        Constructor<?> constructor = null;
+        Constructor<?> constructor;
         Constructor<?>[] declaredConstructors = implType.getDeclaredConstructors();
         List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
                 .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
@@ -30,8 +30,7 @@ public class Container {
         }
         if (filteredConstructors.size() == 1) {
             constructor = filteredConstructors.get(0);
-        }
-        if (filteredConstructors.size() == 0) {
+        } else {
             constructor = declaredConstructors[0];
         }
         Constructor<Impl> finalConstructor = (Constructor<Impl>) constructor;
