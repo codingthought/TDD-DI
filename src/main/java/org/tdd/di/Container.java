@@ -20,25 +20,17 @@ public class Container {
     }
 
     public <Type> Type get(Class<Type> type) {
-        return Optional.ofNullable(getInstance(type)).orElseGet(() -> getInstance1(type));
-    }
-
-    private <Type> Type getInstance(Class<Type> type) {
-        return (Type) INSTANCE_MAP.get(type);
-    }
-
-    private <Type> Type getInstance1(Class<Type> type) {
-        Type instance;
-        Class<?> implType = TYPE_BIND_MAP.get(type);
-        Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
-        instance = Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
-                .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
-        return instance;
+        return Optional.ofNullable((Type) INSTANCE_MAP.get(type)).orElseGet(() -> {
+            Class<?> implType = TYPE_BIND_MAP.get(type);
+            Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
+            return Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
+                    .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
+        });
     }
 
     private <Type> Type newInstanceWith(Constructor<Type> c) {
         try {
-            return c.newInstance(Arrays.stream(c.getParameterTypes()).map(p -> get(p)).toArray());
+            return c.newInstance(Arrays.stream(c.getParameterTypes()).map(this::get).toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             new RuntimeException(e);
         }
