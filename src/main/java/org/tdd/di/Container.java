@@ -16,15 +16,17 @@ public class Container {
     }
 
     public <Type> void bind(Class<Type> type, Class<? extends Type> implType) {
-        MAP.put(type, () -> {
-            Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
-            return Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
-                    .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
-        });
+        MAP.put(type, () -> newInstance(implType));
     }
 
     public <Type> Type get(Class<Type> type) {
         return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get()).orElse(null);
+    }
+
+    private <Type> Type newInstance(Class<? extends Type> implType) {
+        Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
+        return Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
+                .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
     }
 
     private <Type> Type newInstanceWith(Constructor<Type> c) {
