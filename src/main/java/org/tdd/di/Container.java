@@ -9,7 +9,6 @@ import java.util.function.Supplier;
 
 public class Container {
 
-    private static final Map<Class<?>, Class<?>> TYPE_BIND_MAP = new HashMap<>();
     private static final Map<Class<?>, Supplier<?>> MAP = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
@@ -17,15 +16,15 @@ public class Container {
     }
 
     public <Type> void bind(Class<Type> type, Class<? extends Type> implType) {
-        TYPE_BIND_MAP.put(type, implType);
-    }
-
-    public <Type> Type get(Class<Type> type) {
-        return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get()).orElseGet(() -> {
-            Constructor<Type>[] constructors = (Constructor<Type>[]) TYPE_BIND_MAP.get(type).getDeclaredConstructors();
+        MAP.put(type, () -> {
+            Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
             return Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
                     .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
         });
+    }
+
+    public <Type> Type get(Class<Type> type) {
+        return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get()).orElse(null);
     }
 
     private <Type> Type newInstanceWith(Constructor<Type> c) {
