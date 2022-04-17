@@ -23,13 +23,23 @@ public class Container {
     }
 
     public <Type> Type get(Class<Type> type) {
-        Type instance = (Type) INSTANCE_MAP.get(type);
+        Type instance = getInstance(type);
         if (instance == null) {
-            Class<?> implType = TYPE_BIND_MAP.get(type);
-            Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
-            instance = Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
-                    .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
+            instance = getInstance1(type);
         }
+        return instance;
+    }
+
+    private <Type> Type getInstance(Class<Type> type) {
+        return (Type) INSTANCE_MAP.get(type);
+    }
+
+    private <Type> Type getInstance1(Class<Type> type) {
+        Type instance;
+        Class<?> implType = TYPE_BIND_MAP.get(type);
+        Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
+        instance = Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
+                .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
         return instance;
     }
 
