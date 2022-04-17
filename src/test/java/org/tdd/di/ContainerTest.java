@@ -28,24 +28,71 @@ public class ContainerTest {
             assertSame(componentImpl, container.get(Component.class));
         }
 
-        @Test
-        void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
-            container.bind(Component.class, ComponentNoDependency.class);
+        @Nested
+        class InjectWithConstructor {
 
-            assertNotNull(container.get(Component.class));
-            assertTrue(container.get(Component.class) instanceof Component);
-        }
+            @Test
+            void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
+                container.bind(Component.class, ComponentNoDependency.class);
 
-        @Test
-        void should_return_a_correct_component_when_get_if_the_bind_component_has_dependency_inject_by_constructor() {
-            container.bind(AnotherComponent.class, ComponentWithDependency.class);
-            container.bind(Component.class, ComponentNoDependency.class);
+                assertNotNull(container.get(Component.class));
+                assertTrue(container.get(Component.class) instanceof Component);
+            }
 
-            AnotherComponent component = container.get(AnotherComponent.class);
+            @Test
+            void should_return_a_correct_component_when_get_if_the_bind_component_has_dependency() {
+                container.bind(AnotherComponent.class, ComponentWithDependency.class);
+                container.bind(Component.class, ComponentNoDependency.class);
 
-            assertNotNull(component);
-            assertTrue(component instanceof ComponentWithDependency);
-            assertNotNull(((ComponentWithDependency) component).getDependency());
+                AnotherComponent component = container.get(AnotherComponent.class);
+
+                assertNotNull(component);
+                assertTrue(component instanceof ComponentWithDependency);
+                assertNotNull(((ComponentWithDependency) component).getDependency());
+            }
+
+            @Test
+            void should_return_a_correct_component_when_get_if_bind_transitive_dependency_component() {
+                container.bind(AnotherComponent.class, ComponentWithDependency.class);
+                container.bind(Component.class, ComponentDependencyString.class);
+                container.bind(String.class, "dependency");
+
+                AnotherComponent component = container.get(AnotherComponent.class);
+
+                assertNotNull(component);
+                assertTrue(component instanceof ComponentWithDependency);
+
+                Component dependency = ((ComponentWithDependency) component).getDependency();
+                assertNotNull(dependency);
+
+                assertEquals("dependency", ((ComponentDependencyString) dependency).getDependency());
+            }
+
+            class ComponentWithDependency implements AnotherComponent {
+                @Inject
+                public ComponentWithDependency(Component dependency) {
+                    this.dependency = dependency;
+                }
+
+                private Component dependency;
+
+                public Component getDependency() {
+                    return dependency;
+                }
+            }
+
+            class ComponentDependencyString implements Component {
+                @Inject
+                public ComponentDependencyString(String dependency) {
+                    this.dependency = dependency;
+                }
+
+                private String dependency;
+
+                public String getDependency() {
+                    return dependency;
+                }
+            }
         }
     }
 
@@ -71,17 +118,4 @@ interface AnotherComponent {
 
 class ComponentNoDependency implements Component {
 
-}
-
-class ComponentWithDependency implements AnotherComponent {
-    @Inject
-    public ComponentWithDependency(Component dependency) {
-        this.dependency = dependency;
-    }
-
-    private Component dependency;
-
-    public Component getDependency() {
-        return dependency;
-    }
 }
