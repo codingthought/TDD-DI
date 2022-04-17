@@ -17,9 +17,14 @@ public class Container {
     }
 
     public <Type> void bind(Class<Type> type, Class<? extends Type> implType) {
-        List<Constructor<Type>> constructors = Arrays.stream((Constructor<Type>[]) implType.getDeclaredConstructors())
+        Constructor<?>[] declaredConstructors = implType.getDeclaredConstructors();
+        List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
                 .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
-        if (constructors.size() > 1) {
+        if (filteredConstructors.size() > 1) {
+            throw new IllegalComponentException();
+        }
+        if (filteredConstructors.size() == 0 &&
+                Arrays.stream(declaredConstructors).allMatch(d -> d.getParameterTypes().length > 0)) {
             throw new IllegalComponentException();
         }
         MAP.put(type, () -> newInstance(implType));
