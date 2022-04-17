@@ -1,6 +1,7 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -16,6 +17,11 @@ public class Container {
     }
 
     public <Type> void bind(Class<Type> type, Class<? extends Type> implType) {
+        List<Constructor<Type>> constructors = Arrays.stream((Constructor<Type>[]) implType.getDeclaredConstructors())
+                .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
+        if (constructors.size() > 1) {
+            throw new IllegalComponentException();
+        }
         MAP.put(type, () -> newInstance(implType));
     }
 
