@@ -26,24 +26,19 @@ public class Container {
         Type instance = (Type) INSTANCE_MAP.get(type);
         if (instance == null) {
             Class<?> implType = TYPE_BIND_MAP.get(type);
-
             Constructor<Type>[] constructors = (Constructor<Type>[]) implType.getDeclaredConstructors();
-            instance = Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).findFirst().map(c -> {
-                try {
-                    return c.newInstance(Arrays.stream(c.getParameterTypes()).map(p -> get(p)).toArray());
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    new RuntimeException(e);
-                }
-                return null;
-            }).orElseGet(() -> {
-                try {
-                    return constructors[0].newInstance();
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    new RuntimeException(e);
-                }
-                return null;
-            });
+            instance = Arrays.stream(constructors).filter(c -> Objects.nonNull(c.getAnnotation(Inject.class)))
+                    .findFirst().map(this::newInstanceWith).orElseGet(() -> newInstanceWith(constructors[0]));
         }
         return instance;
+    }
+
+    private <Type> Type newInstanceWith(Constructor<Type> c) {
+        try {
+            return c.newInstance(Arrays.stream(c.getParameterTypes()).map(p -> get(p)).toArray());
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            new RuntimeException(e);
+        }
+        return null;
     }
 }
