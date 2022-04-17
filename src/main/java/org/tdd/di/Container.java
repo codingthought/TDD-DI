@@ -4,10 +4,7 @@ import jakarta.inject.Inject;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Container {
 
@@ -23,11 +20,7 @@ public class Container {
     }
 
     public <Type> Type get(Class<Type> type) {
-        Type instance = getInstance(type);
-        if (instance == null) {
-            instance = getInstance1(type);
-        }
-        return instance;
+        return Optional.ofNullable(getInstance(type)).orElseGet(() -> getInstance1(type));
     }
 
     private <Type> Type getInstance(Class<Type> type) {
