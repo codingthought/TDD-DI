@@ -1,5 +1,6 @@
 package org.tdd.di;
 
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,8 @@ public class ContainerTest {
         @Test
         void should_return_the_component_when_get_if_the_component_bind() {
             Container container = new Container();
-            Component componentImpl = new Component(){};
+            Component componentImpl = new Component() {
+            };
             container.bind(Component.class, componentImpl);
 
             assertSame(componentImpl, container.get(Component.class));
@@ -26,6 +28,19 @@ public class ContainerTest {
 
             assertNotNull(container.get(Component.class));
             assertTrue(container.get(Component.class) instanceof Component);
+        }
+
+        @Test
+        void should_return_a_correct_component_when_get_if_the_bind_component_has_dependency_inject_by_constructor() {
+            Container container = new Container();
+            container.bind(AnotherComponent.class, ComponentWithDependency.class);
+            container.bind(Component.class, ComponentNoDependency.class);
+
+            AnotherComponent component = container.get(AnotherComponent.class);
+
+            assertNotNull(component);
+            assertTrue(component instanceof ComponentWithDependency);
+            assertNotNull(((ComponentWithDependency) component).getDependency());
         }
     }
 
@@ -45,6 +60,23 @@ interface Component {
 
 }
 
+interface AnotherComponent {
+
+}
+
 class ComponentNoDependency implements Component {
 
+}
+
+class ComponentWithDependency implements AnotherComponent {
+    @Inject
+    public ComponentWithDependency(Component dependency) {
+        this.dependency = dependency;
+    }
+
+    private Component dependency;
+
+    public Component getDependency() {
+        return dependency;
+    }
 }
