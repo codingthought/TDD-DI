@@ -100,6 +100,7 @@ public class ContainerTest {
                 container.bind(AnotherComponent.class, AnotherDependentComponent.class);
                 container.bind(Component.class, ComponentDependentAnotherComponent.class);
                 assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
+                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
             }
         }
 
