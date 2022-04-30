@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
@@ -93,6 +94,12 @@ public class ContainerTest {
                 Optional<Component> component = container.get(Component.class);
                 assertTrue(component.isEmpty());
             }
+
+            @Test
+            void should_return_Exception_when_bind_if_cycle_dependency() {
+                container.bind(AnotherComponent.class, AnotherDependentComponent.class);
+                assertThrows(CycleDependencyNotAllowed.class, () -> container.bind(Component.class, ComponentDependentAnotherComponent.class));
+            }
         }
 
 
@@ -129,6 +136,32 @@ class ComponentWithDependency implements AnotherComponent {
     private Component dependency;
 
     public Component getDependency() {
+        return dependency;
+    }
+}
+
+class AnotherDependentComponent implements AnotherComponent {
+    @Inject
+    public AnotherDependentComponent(Component dependency) {
+        this.dependency = dependency;
+    }
+
+    private Component dependency;
+
+    public Component getDependency() {
+        return dependency;
+    }
+}
+
+class ComponentDependentAnotherComponent implements Component {
+    @Inject
+    public ComponentDependentAnotherComponent(AnotherComponent dependency) {
+        this.dependency = dependency;
+    }
+
+    private AnotherComponent dependency;
+
+    public AnotherComponent getDependency() {
         return dependency;
     }
 }
