@@ -29,7 +29,7 @@ public class ContainerTest {
             };
             container.bind(Component.class, componentImpl);
 
-            assertSame(componentImpl, container.get(Component.class));
+            assertSame(componentImpl, container.get(Component.class).orElse(null));
         }
 
         @Nested
@@ -39,8 +39,8 @@ public class ContainerTest {
             void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
                 container.bind(Component.class, ComponentNoDependency.class);
 
-                assertNotNull(container.get(Component.class));
-                assertTrue(container.get(Component.class) instanceof Component);
+                assertNotNull(container.get(Component.class).orElse(null));
+                assertTrue(container.get(Component.class).orElse(null) instanceof Component);
             }
 
             @Test
@@ -48,7 +48,7 @@ public class ContainerTest {
                 container.bind(AnotherComponent.class, ComponentWithDependency.class);
                 container.bind(Component.class, ComponentNoDependency.class);
 
-                AnotherComponent component = container.get(AnotherComponent.class);
+                AnotherComponent component = container.get(AnotherComponent.class).orElse(null);
 
                 assertNotNull(component);
                 assertTrue(component instanceof ComponentWithDependency);
@@ -61,7 +61,7 @@ public class ContainerTest {
                 container.bind(Component.class, ComponentDependencyString.class);
                 container.bind(String.class, "dependency");
 
-                AnotherComponent component = container.get(AnotherComponent.class);
+                AnotherComponent component = container.get(AnotherComponent.class).orElse(null);
 
                 assertNotNull(component);
                 assertTrue(component instanceof ComponentWithDependency);
@@ -74,14 +74,12 @@ public class ContainerTest {
 
             @Test
             void should_throw_Exception_when_bind_if_multi_inject_constructor_provided() {
-                assertThrows(IllegalComponentException.class, () ->
-                        container.bind(Component.class, ComponentWithMultiInjectConstructor.class));
+                assertThrows(IllegalComponentException.class, () -> container.bind(Component.class, ComponentWithMultiInjectConstructor.class));
             }
 
             @Test
             void should_throw_Exception_when_bind_if_no_inject_nor_default_constructor_provided() {
-                assertThrows(IllegalComponentException.class, () ->
-                        container.bind(Component.class, ComponentWithNoInjectNorDefaultConstructor.class));
+                assertThrows(IllegalComponentException.class, () -> container.bind(Component.class, ComponentWithNoInjectNorDefaultConstructor.class));
             }
 
             @Test
@@ -92,7 +90,7 @@ public class ContainerTest {
 
             @Test
             void should_return_empty_when_get_if_not_bind() {
-                Optional<Component> component = container.getOpl(Component.class);
+                Optional<Component> component = container.get(Component.class);
                 assertTrue(component.isEmpty());
             }
         }

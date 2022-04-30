@@ -38,21 +38,17 @@ public class Container {
         MAP.put(type, () -> newInstanceWith(finalConstructor));
     }
 
-    public <Type> Type get(Class<Type> type) {
-        return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get()).orElse(null);
-    }
-
     private <Type> Type newInstanceWith(Constructor<Type> c) {
         try {
             return c.newInstance(Arrays.stream(c.getParameterTypes())
-                    .map(p -> Optional.ofNullable(get(p)).orElseThrow(DependencyNotFoundException::new)).toArray());
+                    .map(p -> get(p).orElseThrow(DependencyNotFoundException::new)).toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             new RuntimeException(e);
         }
         return null;
     }
 
-    public <Type> Optional<Type> getOpl(Class<Type> type) {
+    public <Type> Optional<Type> get(Class<Type> type) {
         return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get());
     }
 }
