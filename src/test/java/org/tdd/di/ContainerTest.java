@@ -18,7 +18,7 @@ public class ContainerTest {
     }
 
     @Nested
-    class ComponentConstruction {
+    class ComponentConstructionTest {
 
         @Test
         void should_return_the_component_when_get_if_the_component_bind() {
@@ -30,7 +30,7 @@ public class ContainerTest {
         }
 
         @Nested
-        class InjectWithConstructor {
+        class InjectWithConstructorTest {
 
             @Test
             void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
@@ -126,12 +126,12 @@ public class ContainerTest {
 
 
     @Nested
-    class ComponentSelection {
+    class ComponentSelectionTest {
 
     }
 
     @Nested
-    class ComponentLifeCycle {
+    class ComponentLifeCycleTest {
 
     }
 }
