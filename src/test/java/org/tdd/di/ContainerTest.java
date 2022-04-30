@@ -14,7 +14,7 @@ public class ContainerTest {
     private Container container;
 
     @BeforeEach
-    void setUp() {
+    public void setup() {
         container = new Container();
     }
 
@@ -87,59 +87,18 @@ public class ContainerTest {
                 container.bind(AnotherComponent.class, ComponentWithDependency.class);
                 assertThrows(DependencyNotFoundException.class, () -> container.get(AnotherComponent.class));
             }
-
-            private class ComponentWithDependency implements AnotherComponent {
-                @Inject
-                public ComponentWithDependency(Component dependency) {
-                    this.dependency = dependency;
-                }
-
-                private Component dependency;
-
-                public Component getDependency() {
-                    return dependency;
-                }
-            }
-
-            private class ComponentDependencyString implements Component {
-                @Inject
-                public ComponentDependencyString(String dependency) {
-                    this.dependency = dependency;
-                }
-
-                private String dependency;
-
-                public String getDependency() {
-                    return dependency;
-                }
-            }
-
-            private class ComponentWithMultiInjectConstructor implements Component {
-                @Inject
-                public ComponentWithMultiInjectConstructor(String name) {
-                }
-
-                @Inject
-                public ComponentWithMultiInjectConstructor(Integer id) {
-                }
-            }
-
-            private class ComponentWithNoInjectNorDefaultConstructor implements Component {
-                public ComponentWithNoInjectNorDefaultConstructor(String name) {
-                }
-            }
         }
-    }
 
 
-    @Nested
-    class ComponentSelectionTest {
+        @Nested
+        class ComponentSelectionTest {
 
-    }
+        }
 
-    @Nested
-    class ComponentLifeCycleTest {
+        @Nested
+        class ComponentLifeCycleTest {
 
+        }
     }
 }
 
@@ -153,4 +112,45 @@ interface AnotherComponent {
 
 class ComponentNoDependency implements Component {
 
+}
+
+class ComponentWithDependency implements AnotherComponent {
+    @Inject
+    public ComponentWithDependency(Component dependency) {
+        this.dependency = dependency;
+    }
+
+    private Component dependency;
+
+    public Component getDependency() {
+        return dependency;
+    }
+}
+
+class ComponentDependencyString implements Component {
+    @Inject
+    public ComponentDependencyString(String dependency) {
+        this.dependency = dependency;
+    }
+
+    private String dependency;
+
+    public String getDependency() {
+        return dependency;
+    }
+}
+
+class ComponentWithMultiInjectConstructor implements Component {
+    @Inject
+    public ComponentWithMultiInjectConstructor(String name) {
+    }
+
+    @Inject
+    public ComponentWithMultiInjectConstructor(Integer id) {
+    }
+}
+
+class ComponentWithNoInjectNorDefaultConstructor implements Component {
+    public ComponentWithNoInjectNorDefaultConstructor(String name) {
+    }
 }

@@ -1,6 +1,7 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
@@ -10,7 +11,7 @@ import java.util.function.Supplier;
 
 public class Container {
 
-    private static final Map<Class<?>, Supplier<?>> MAP = new HashMap<>();
+    private final Map<Class<?>, Supplier<?>> MAP = new HashMap<>();
 
     public <Type> void bind(Class<Type> type, Type instance) {
         MAP.put(type, () -> instance);
@@ -43,7 +44,8 @@ public class Container {
 
     private <Type> Type newInstanceWith(Constructor<Type> c) {
         try {
-            return c.newInstance(Arrays.stream(c.getParameterTypes()).map(this::get).toArray());
+            return c.newInstance(Arrays.stream(c.getParameterTypes())
+                    .map(p -> Optional.ofNullable(get(p)).orElseThrow(DependencyNotFoundException::new)).toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             new RuntimeException(e);
         }
