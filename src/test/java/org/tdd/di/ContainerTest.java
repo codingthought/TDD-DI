@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ContainerTest {
@@ -86,6 +88,12 @@ public class ContainerTest {
             void should_throw_Exception_when_get_dependency_not_found() {
                 container.bind(AnotherComponent.class, ComponentWithDependency.class);
                 assertThrows(DependencyNotFoundException.class, () -> container.get(AnotherComponent.class));
+            }
+
+            @Test
+            void should_return_empty_when_get_if_not_bind() {
+                Optional<Component> component = container.getOpl(Component.class);
+                assertTrue(component.isEmpty());
             }
         }
 

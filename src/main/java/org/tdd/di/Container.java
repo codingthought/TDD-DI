@@ -51,4 +51,8 @@ public class Container {
         }
         return null;
     }
+
+    public <Type> Optional<Type> getOpl(Class<Type> type) {
+        return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get());
+    }
 }
