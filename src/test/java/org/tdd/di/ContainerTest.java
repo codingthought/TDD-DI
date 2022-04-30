@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,6 +80,12 @@ public class ContainerTest {
             void should_throw_Exception_when_bind_if_no_inject_nor_default_constructor_provided() {
                 assertThrows(IllegalComponentException.class, () ->
                         container.bind(Component.class, ComponentWithNoInjectNorDefaultConstructor.class));
+            }
+
+            @Test
+            void should_throw_Exception_when_get_dependency_not_found() {
+                container.bind(AnotherComponent.class, ComponentWithDependency.class);
+                assertThrows(DependencyNotFoundException.class, () -> container.get(AnotherComponent.class));
             }
 
             private class ComponentWithDependency implements AnotherComponent {
