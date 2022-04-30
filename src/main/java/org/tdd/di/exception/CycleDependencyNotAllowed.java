@@ -1,4 +1,4 @@
 package org.tdd.di.exception;
 
-public class CycleDependencyNotAllowed extends Exception {
+public class CycleDependencyNotAllowed extends RuntimeException {
 }

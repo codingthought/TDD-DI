@@ -98,7 +98,8 @@ public class ContainerTest {
             @Test
             void should_return_Exception_when_bind_if_cycle_dependency() {
                 container.bind(AnotherComponent.class, AnotherDependentComponent.class);
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.bind(Component.class, ComponentDependentAnotherComponent.class));
+                container.bind(Component.class, ComponentDependentAnotherComponent.class);
+                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
             }
         }
 
