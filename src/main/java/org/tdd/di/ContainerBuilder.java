@@ -14,11 +14,12 @@ public class ContainerBuilder {
 
     private final Map<Class<?>, Supplier<?>> MAP = new HashMap<>();
 
-    public <Type> void bind(Class<Type> type, Type instance) {
+    public <Type> ContainerBuilder bind(Class<Type> type, Type instance) {
         MAP.put(type, () -> instance);
+        return this;
     }
 
-    public <Type> void bind(Class<Type> type, Class<? extends Type> implType) {
+    public <Type> ContainerBuilder bind(Class<Type> type, Class<? extends Type> implType) {
         Constructor<?> constructor;
         Constructor<?>[] declaredConstructors = implType.getDeclaredConstructors();
         List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
@@ -36,6 +37,7 @@ public class ContainerBuilder {
             constructor = declaredConstructors[0];
         }
         MAP.put(type, new InjectConstruction<>(constructor));
+        return this;
     }
 
     public Container build() {
