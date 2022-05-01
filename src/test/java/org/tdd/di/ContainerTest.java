@@ -109,7 +109,22 @@ public class ContainerTest {
                 assertEquals(2, components.size());
                 assertTrue(components.contains(AnotherDependentComponent.class));
                 assertTrue(components.contains(ComponentDependentAnotherComponent.class));
+            }
 
+            @Test
+            void should_return_Exception_when_bind_if_transitive_cycle_dependency() {
+                container.bind(Component.class, ComponentDependentDependency.class);
+                container.bind(Dependency.class, ComponentDependentAnother.class);
+                container.bind(AnotherComponent.class, AnotherDependentComponent.class);
+
+                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
+                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Dependency.class));
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
+                List<Class<?>> components = exception.getComponents();
+                assertEquals(3, components.size());
+                assertTrue(components.contains(ComponentDependentDependency.class));
+                assertTrue(components.contains(ComponentDependentAnother.class));
+                assertTrue(components.contains(AnotherDependentComponent.class));
             }
         }
 
@@ -129,8 +144,33 @@ interface Component {
 
 }
 
+interface Dependency {
+
+}
+
 interface AnotherComponent {
 
+}
+
+class ComponentDependentDependency implements Component {
+
+    @Inject
+    public ComponentDependentDependency(Dependency dependency) {
+        this.dependency = dependency;
+    }
+
+    private final Dependency dependency;
+}
+
+class ComponentDependentAnother implements Dependency {
+
+
+    @Inject
+    public ComponentDependentAnother(AnotherComponent dependency) {
+        this.dependency = dependency;
+    }
+
+    private final AnotherComponent dependency;
 }
 
 class ComponentNoDependency implements Component {
