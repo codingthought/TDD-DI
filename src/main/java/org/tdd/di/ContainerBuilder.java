@@ -15,8 +15,6 @@ public class ContainerBuilder {
 
     private final Map<Class<?>, List<Class<?>>> componentDependencies = new HashMap<>();
 
-    private final Map<Class<?>, List<Class<?>>> componentScans = new HashMap<>();
-
     public <Type> ContainerBuilder bind(Class<Type> type, Type instance) {
         componentProviders.put(type, (container) -> instance);
         componentDependencies.put(type, List.of());
@@ -46,15 +44,7 @@ public class ContainerBuilder {
     }
 
     public Container build() {
-        for (Class<?> component : componentDependencies.keySet()) {
-            for (Class<?> dependency : componentDependencies.get(component)) {
-                if (!componentDependencies.containsKey(dependency) && componentDependencies.keySet().stream()
-                        .noneMatch(t -> Arrays.asList(t.getInterfaces()).contains(dependency))) {
-                    throw new DependencyNotFoundException(component, dependency);
-                }
-            }
-            checkCycleDependency(component, new Stack<>());
-        }
+        componentDependencies.keySet().forEach(component -> checkCycleDependency(component, new Stack<>()));
         return new Container(componentProviders);
     }
 
