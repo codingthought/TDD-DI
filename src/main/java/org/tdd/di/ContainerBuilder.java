@@ -18,6 +18,12 @@ public class ContainerBuilder {
     }
 
     public <Type> ContainerBuilder bind(Class<Type> type, Class<? extends Type> implType) {
+        Constructor<?> constructor = getConstructor(implType);
+        componentProviders.put(type, new InjectConstructionProvider<>(constructor));
+        return this;
+    }
+
+    private static <Type> Constructor<?> getConstructor(Class<? extends Type> implType) {
         Constructor<?> constructor;
         Constructor<?>[] declaredConstructors = implType.getDeclaredConstructors();
         List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
@@ -34,8 +40,7 @@ public class ContainerBuilder {
         } else {
             constructor = declaredConstructors[0];
         }
-        componentProviders.put(type, new InjectConstructionProvider<>(constructor));
-        return this;
+        return constructor;
     }
 
     public Container build() {
