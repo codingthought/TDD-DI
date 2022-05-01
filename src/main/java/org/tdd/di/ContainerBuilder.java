@@ -1,17 +1,22 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ContainerBuilder {
 
-    private final Map<Class<?>, ComponentProvider<?>> MAP = new HashMap<>();
+    private final Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
+
+    private final Map<Class<?>, List<Class<?>>> componentDependencies = new HashMap<>();
 
     public <Type> ContainerBuilder bind(Class<Type> type, Type instance) {
-        MAP.put(type, (container) -> instance);
+        componentProviders.put(type, (container) -> instance);
+        componentDependencies.put(type, List.of());
         return this;
     }
 
@@ -32,11 +37,20 @@ public class ContainerBuilder {
         } else {
             constructor = declaredConstructors[0];
         }
-        MAP.put(type, new InjectConstructionProvider<>(constructor));
+        componentProviders.put(type, new InjectConstructionProvider<>(constructor));
+        componentDependencies.put(constructor.getDeclaringClass(), Arrays.stream(constructor.getParameterTypes()).collect(Collectors.toList()));
         return this;
     }
 
     public Container build() {
-        return new Container(MAP);
+        for (Class<?> component : componentDependencies.keySet()) {
+            for (Class<?> dependency : componentDependencies.get(component)) {
+                if (!componentDependencies.containsKey(dependency) && componentDependencies.keySet().stream()
+                        .noneMatch(t -> Arrays.asList(t.getInterfaces()).contains(dependency))) {
+                    throw new DependencyNotFoundException(component, dependency);
+                }
+            }
+        }
+        return new Container(componentProviders);
     }
 }
