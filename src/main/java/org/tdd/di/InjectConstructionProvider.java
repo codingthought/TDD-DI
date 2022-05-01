@@ -31,6 +31,10 @@ record InjectConstructionProvider<Type>(Constructor<Type> constructor) implement
         return constructor;
     }
 
+    static <Type> InjectConstructionProvider<?> getInjectConstructionProvider(Class<? extends Type> implType) {
+        return new InjectConstructionProvider<>(getConstructor(implType));
+    }
+
     @Override
     public Type getFrom(Container container) {
         try {
