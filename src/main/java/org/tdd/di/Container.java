@@ -35,26 +35,28 @@ public class Container {
         } else {
             constructor = declaredConstructors[0];
         }
-        MAP.put(type, new InjectConstruction(constructor));
+        MAP.put(type, new InjectConstruction<>(constructor));
     }
 
-    class InjectConstruction<T> implements Supplier<T> {
-        public InjectConstruction(Constructor<T> constructor) {
+    class InjectConstruction<Type> implements Supplier<Type> {
+        private final Constructor<Type> constructor;
+        private boolean constructing = false;
+
+        public InjectConstruction(Constructor<Type> constructor) {
             this.constructor = constructor;
         }
 
-        private final Constructor<T> constructor;
-        private boolean constructing = false;
-
         @Override
-        public T get() {
+        public Type get() {
             if (constructing) {
                 throw new CycleDependencyNotAllowed();
             }
             try {
                 constructing = true;
                 return constructor.newInstance(Arrays.stream(constructor.getParameterTypes())
-                        .map(p -> Container.this.get(p).orElseThrow(DependencyNotFoundException::new)).toArray());
+                        .map(p -> Container.this.get(p).orElseThrow(() ->
+                                new DependencyNotFoundException(constructor.getDeclaringClass(), p)))
+                        .toArray());
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 new RuntimeException(e);
             } finally {
