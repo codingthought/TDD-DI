@@ -38,6 +38,10 @@ public class Container {
         MAP.put(type, new InjectConstruction<>(constructor));
     }
 
+    public <Type> Optional<Type> get(Class<Type> type) {
+        return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get());
+    }
+
     class InjectConstruction<Type> implements Supplier<Type> {
         private final Constructor<Type> constructor;
         private boolean constructing = false;
@@ -66,9 +70,5 @@ public class Container {
             }
             return null;
         }
-    }
-
-    public <Type> Optional<Type> get(Class<Type> type) {
-        return Optional.ofNullable(MAP.get(type)).map(p -> (Type) p.get());
     }
 }
