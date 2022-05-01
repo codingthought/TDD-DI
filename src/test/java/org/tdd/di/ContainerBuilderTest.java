@@ -13,13 +13,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ContainerTest {
+public class ContainerBuilderTest {
 
-    private Container container;
+    private ContainerBuilder containerBuilder;
 
     @BeforeEach
     public void setup() {
-        container = new Container();
+        containerBuilder = new ContainerBuilder();
     }
 
     @Nested
@@ -29,9 +29,9 @@ public class ContainerTest {
         void should_return_the_component_when_get_if_the_component_bind() {
             Component componentImpl = new Component() {
             };
-            container.bind(Component.class, componentImpl);
+            containerBuilder.bind(Component.class, componentImpl);
 
-            assertSame(componentImpl, container.get(Component.class).orElse(null));
+            assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
         }
 
         @Nested
@@ -39,18 +39,18 @@ public class ContainerTest {
 
             @Test
             void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
-                container.bind(Component.class, ComponentNoDependency.class);
+                containerBuilder.bind(Component.class, ComponentNoDependency.class);
 
-                assertNotNull(container.get(Component.class).orElse(null));
-                assertTrue(container.get(Component.class).orElse(null) instanceof Component);
+                assertNotNull(containerBuilder.build().get(Component.class).orElse(null));
+                assertTrue(containerBuilder.build().get(Component.class).orElse(null) instanceof Component);
             }
 
             @Test
             void should_return_a_correct_component_when_get_if_the_bind_component_has_dependency() {
-                container.bind(AnotherComponent.class, ComponentWithDependency.class);
-                container.bind(Component.class, ComponentNoDependency.class);
+                containerBuilder.bind(AnotherComponent.class, ComponentWithDependency.class);
+                containerBuilder.bind(Component.class, ComponentNoDependency.class);
 
-                AnotherComponent component = container.get(AnotherComponent.class).orElse(null);
+                AnotherComponent component = containerBuilder.build().get(AnotherComponent.class).orElse(null);
 
                 assertNotNull(component);
                 assertTrue(component instanceof ComponentWithDependency);
@@ -59,11 +59,11 @@ public class ContainerTest {
 
             @Test
             void should_return_a_correct_component_when_get_if_bind_transitive_dependency_component() {
-                container.bind(AnotherComponent.class, ComponentWithDependency.class);
-                container.bind(Component.class, ComponentDependencyString.class);
-                container.bind(String.class, "dependency");
+                containerBuilder.bind(AnotherComponent.class, ComponentWithDependency.class);
+                containerBuilder.bind(Component.class, ComponentDependencyString.class);
+                containerBuilder.bind(String.class, "dependency");
 
-                AnotherComponent component = container.get(AnotherComponent.class).orElse(null);
+                AnotherComponent component = containerBuilder.build().get(AnotherComponent.class).orElse(null);
 
                 assertNotNull(component);
                 assertTrue(component instanceof ComponentWithDependency);
@@ -76,35 +76,35 @@ public class ContainerTest {
 
             @Test
             void should_throw_Exception_when_bind_if_multi_inject_constructor_provided() {
-                assertThrows(IllegalComponentException.class, () -> container.bind(Component.class, ComponentWithMultiInjectConstructor.class));
+                assertThrows(IllegalComponentException.class, () -> containerBuilder.bind(Component.class, ComponentWithMultiInjectConstructor.class));
             }
 
             @Test
             void should_throw_Exception_when_bind_if_no_inject_nor_default_constructor_provided() {
-                assertThrows(IllegalComponentException.class, () -> container.bind(Component.class, ComponentWithNoInjectNorDefaultConstructor.class));
+                assertThrows(IllegalComponentException.class, () -> containerBuilder.bind(Component.class, ComponentWithNoInjectNorDefaultConstructor.class));
             }
 
             @Test
             void should_throw_Exception_when_get_dependency_not_found() {
-                container.bind(AnotherComponent.class, ComponentWithDependency.class);
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> container.get(AnotherComponent.class));
+                containerBuilder.bind(AnotherComponent.class, ComponentWithDependency.class);
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> containerBuilder.build().get(AnotherComponent.class));
                 assertEquals(Component.class, exception.getDependency());
                 assertEquals(ComponentWithDependency.class, exception.getComponent());
             }
 
             @Test
             void should_return_empty_when_get_if_not_bind() {
-                Optional<Component> component = container.get(Component.class);
+                Optional<Component> component = containerBuilder.build().get(Component.class);
                 assertTrue(component.isEmpty());
             }
 
             @Test
             void should_return_Exception_when_bind_if_cycle_dependency() {
-                container.bind(AnotherComponent.class, AnotherDependentComponent.class);
-                container.bind(Component.class, ComponentDependentAnotherComponent.class);
+                containerBuilder.bind(AnotherComponent.class, AnotherDependentComponent.class);
+                containerBuilder.bind(Component.class, ComponentDependentAnotherComponent.class);
 
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
-                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
+                assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build().get(Component.class));
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build().get(AnotherComponent.class));
                 List<Class<?>> components = exception.getComponents();
                 assertEquals(2, components.size());
                 assertTrue(components.contains(AnotherDependentComponent.class));
@@ -113,13 +113,13 @@ public class ContainerTest {
 
             @Test
             void should_return_Exception_when_bind_if_transitive_cycle_dependency() {
-                container.bind(Component.class, ComponentDependentDependency.class);
-                container.bind(Dependency.class, ComponentDependentAnother.class);
-                container.bind(AnotherComponent.class, AnotherDependentComponent.class);
+                containerBuilder.bind(Component.class, ComponentDependentDependency.class);
+                containerBuilder.bind(Dependency.class, ComponentDependentAnother.class);
+                containerBuilder.bind(AnotherComponent.class, AnotherDependentComponent.class);
 
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Dependency.class));
-                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
+                assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build().get(Component.class));
+                assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build().get(Dependency.class));
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build().get(AnotherComponent.class));
                 List<Class<?>> components = exception.getComponents();
                 assertEquals(3, components.size());
                 assertTrue(components.contains(ComponentDependentDependency.class));
