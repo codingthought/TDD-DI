@@ -7,17 +7,13 @@ import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ContainerBuilder {
 
     private final Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
 
-    private final Map<Class<?>, List<Class<?>>> componentDependencies = new HashMap<>();
-
     public <Type> ContainerBuilder bind(Class<Type> type, Type instance) {
         componentProviders.put(type, (container) -> instance);
-        componentDependencies.put(type, List.of());
         return this;
     }
 
@@ -39,18 +35,17 @@ public class ContainerBuilder {
             constructor = declaredConstructors[0];
         }
         componentProviders.put(type, new InjectConstructionProvider<>(constructor));
-        componentDependencies.put(type, Arrays.stream(constructor.getParameterTypes()).collect(Collectors.toList()));
         return this;
     }
 
     public Container build() {
-        componentDependencies.keySet().forEach(component -> checkCycleDependency(component, new Stack<>()));
+        componentProviders.keySet().forEach(component -> checkCycleDependency(component, new Stack<>()));
         return new Container(componentProviders);
     }
 
     private void checkCycleDependency(Class<?> component, Stack<Class<?>> stack) {
-        for (Class<?> dependency : componentDependencies.getOrDefault(component, List.of())) {
-            if (!componentDependencies.containsKey(dependency) && componentDependencies.keySet().stream()
+        for (Class<?> dependency : getDependencies(component)) {
+            if (!componentProviders.containsKey(dependency) && componentProviders.keySet().stream()
                     .noneMatch(t -> Arrays.asList(t.getInterfaces()).contains(dependency))) {
                 throw new DependencyNotFoundException(component, dependency);
             }
@@ -61,5 +56,9 @@ public class ContainerBuilder {
             checkCycleDependency(dependency, stack);
             stack.pop();
         }
+    }
+
+    private List<Class<?>> getDependencies(Class<?> component) {
+        return Optional.ofNullable(componentProviders.get(component)).map(ComponentProvider::getDependencies).orElseGet(List::of);
     }
 }

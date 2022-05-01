@@ -6,6 +6,7 @@ import org.tdd.di.exception.DependencyNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.List;
 
 class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
     private final Constructor<Type> constructor;
@@ -34,5 +35,10 @@ class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
             constructing = false;
         }
         return null;
+    }
+
+    @Override
+    public List<Class<?>> getDependencies() {
+        return Arrays.stream(constructor.getParameterTypes()).toList();
     }
 }
