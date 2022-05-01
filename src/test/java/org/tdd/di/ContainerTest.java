@@ -8,6 +8,7 @@ import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -101,8 +102,14 @@ public class ContainerTest {
             void should_return_Exception_when_bind_if_cycle_dependency() {
                 container.bind(AnotherComponent.class, AnotherDependentComponent.class);
                 container.bind(Component.class, ComponentDependentAnotherComponent.class);
+
                 assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
+                List<Class<?>> components = exception.getComponents();
+                assertEquals(2, components.size());
+                assertTrue(components.contains(AnotherDependentComponent.class));
+                assertTrue(components.contains(ComponentDependentAnotherComponent.class));
+
             }
         }
 

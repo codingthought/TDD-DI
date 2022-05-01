@@ -49,7 +49,7 @@ public class Container {
         @Override
         public Type get() {
             if (constructing) {
-                throw new CycleDependencyNotAllowed();
+                throw new CycleDependencyNotAllowed(constructor.getDeclaringClass());
             }
             try {
                 constructing = true;
@@ -57,6 +57,8 @@ public class Container {
                         .map(p -> Container.this.get(p).orElseThrow(() ->
                                 new DependencyNotFoundException(constructor.getDeclaringClass(), p)))
                         .toArray());
+            } catch (CycleDependencyNotAllowed e) {
+                throw new CycleDependencyNotAllowed(e, constructor.getDeclaringClass());
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 new RuntimeException(e);
             } finally {
