@@ -13,7 +13,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ContainerBuilderTest {
+public class ContainerTest {
 
     private ContainerBuilder containerBuilder;
 
