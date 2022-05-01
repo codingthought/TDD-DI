@@ -106,10 +106,8 @@ public class ContainerTest {
             void should_return_Exception_when_bind_if_cycle_dependency() {
                 containerBuilder.bind(AnotherComponent.class, AnotherDependentComponent.class)
                         .bind(Component.class, ComponentDependentAnotherComponent.class);
-                Container container = containerBuilder.build();
 
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
-                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
                 List<Class<?>> components = exception.getComponents();
                 assertEquals(2, components.size());
                 assertTrue(components.contains(AnotherDependentComponent.class));
@@ -121,11 +119,8 @@ public class ContainerTest {
                 containerBuilder.bind(Component.class, ComponentDependentDependency.class)
                         .bind(Dependency.class, ComponentDependentAnother.class)
                         .bind(AnotherComponent.class, AnotherDependentComponent.class);
-                Container container = containerBuilder.build();
 
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Component.class));
-                assertThrows(CycleDependencyNotAllowed.class, () -> container.get(Dependency.class));
-                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> container.get(AnotherComponent.class));
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
                 List<Class<?>> components = exception.getComponents();
                 assertEquals(3, components.size());
                 assertTrue(components.contains(ComponentDependentDependency.class));
