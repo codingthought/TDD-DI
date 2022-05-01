@@ -9,11 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-record InjectConstructionProvider<Type>(Constructor<Type> constructor) implements ComponentProvider<Type> {
+class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
+    private final Constructor<Type> constructor;
 
-    static <Type> Constructor<?> getConstructor(Class<? extends Type> implType) {
-        Constructor<?> constructor;
-        Constructor<?>[] declaredConstructors = implType.getDeclaredConstructors();
+    InjectConstructionProvider(Class<? extends Type> component) {
+        Constructor<?>[] declaredConstructors = component.getDeclaredConstructors();
         List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
                 .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
         if (filteredConstructors.size() > 1) {
@@ -24,23 +24,16 @@ record InjectConstructionProvider<Type>(Constructor<Type> constructor) implement
             throw new IllegalComponentException();
         }
         if (filteredConstructors.size() == 1) {
-            constructor = filteredConstructors.get(0);
+            constructor = (Constructor<Type>) filteredConstructors.get(0);
         } else {
-            constructor = declaredConstructors[0];
+            constructor = (Constructor<Type>) declaredConstructors[0];
         }
-        return constructor;
-    }
-
-    static <Type> InjectConstructionProvider<?> getInjectConstructionProvider(Class<? extends Type> implType) {
-        return new InjectConstructionProvider<>(getConstructor(implType));
     }
 
     @Override
     public Type getFrom(Container container) {
         try {
-            return constructor.newInstance(Arrays.stream(constructor.getParameterTypes())
-                    .map(p -> container.get(p).get())
-                    .toArray());
+            return constructor.newInstance(Arrays.stream(constructor.getParameterTypes()).map(p -> container.get(p).get()).toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }

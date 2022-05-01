@@ -15,7 +15,7 @@ public class ContainerBuilder {
     }
 
     public <Type> ContainerBuilder bind(Class<Type> type, Class<? extends Type> implType) {
-        componentProviders.put(type, InjectConstructionProvider.getInjectConstructionProvider(implType));
+        componentProviders.put(type, new InjectConstructionProvider<>(implType));
         return this;
     }
 
