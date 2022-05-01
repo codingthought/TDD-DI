@@ -20,6 +20,10 @@ public class CycleDependencyNotAllowed extends RuntimeException {
         }
     }
 
+    public CycleDependencyNotAllowed(List<Class<?>> classes) {
+        components = classes;
+    }
+
     public List<Class<?>> getComponents() {
         return components;
     }

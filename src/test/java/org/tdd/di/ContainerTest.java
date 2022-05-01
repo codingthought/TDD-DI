@@ -93,7 +93,7 @@ public class ContainerTest {
 
                 DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> containerBuilder.build());
                 assertEquals(Component.class, exception.getDependency());
-                assertEquals(ComponentWithDependency.class, exception.getComponent());
+                assertEquals(AnotherComponent.class, exception.getComponent());
             }
 
             @Test
@@ -110,8 +110,8 @@ public class ContainerTest {
                 CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
                 List<Class<?>> components = exception.getComponents();
                 assertEquals(2, components.size());
-                assertTrue(components.contains(AnotherDependentComponent.class));
-                assertTrue(components.contains(ComponentDependentAnotherComponent.class));
+                assertTrue(components.contains(AnotherComponent.class));
+                assertTrue(components.contains(Component.class));
             }
 
             @Test
@@ -123,9 +123,9 @@ public class ContainerTest {
                 CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
                 List<Class<?>> components = exception.getComponents();
                 assertEquals(3, components.size());
-                assertTrue(components.contains(ComponentDependentDependency.class));
-                assertTrue(components.contains(ComponentDependentAnother.class));
-                assertTrue(components.contains(AnotherDependentComponent.class));
+                assertTrue(components.contains(Component.class));
+                assertTrue(components.contains(Dependency.class));
+                assertTrue(components.contains(AnotherComponent.class));
             }
         }
 

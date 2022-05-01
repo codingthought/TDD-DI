@@ -1,6 +1,7 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
@@ -13,6 +14,8 @@ public class ContainerBuilder {
     private final Map<Class<?>, ComponentProvider<?>> componentProviders = new HashMap<>();
 
     private final Map<Class<?>, List<Class<?>>> componentDependencies = new HashMap<>();
+
+    private final Map<Class<?>, List<Class<?>>> componentScans = new HashMap<>();
 
     public <Type> ContainerBuilder bind(Class<Type> type, Type instance) {
         componentProviders.put(type, (container) -> instance);
@@ -38,7 +41,7 @@ public class ContainerBuilder {
             constructor = declaredConstructors[0];
         }
         componentProviders.put(type, new InjectConstructionProvider<>(constructor));
-        componentDependencies.put(constructor.getDeclaringClass(), Arrays.stream(constructor.getParameterTypes()).collect(Collectors.toList()));
+        componentDependencies.put(type, Arrays.stream(constructor.getParameterTypes()).collect(Collectors.toList()));
         return this;
     }
 
@@ -50,7 +53,23 @@ public class ContainerBuilder {
                     throw new DependencyNotFoundException(component, dependency);
                 }
             }
+            checkCycleDependency(component, new Stack<>());
         }
         return new Container(componentProviders);
+    }
+
+    private void checkCycleDependency(Class<?> component, Stack<Class<?>> stack) {
+        for (Class<?> dependency : componentDependencies.getOrDefault(component, List.of())) {
+            if (!componentDependencies.containsKey(dependency) && componentDependencies.keySet().stream()
+                    .noneMatch(t -> Arrays.asList(t.getInterfaces()).contains(dependency))) {
+                throw new DependencyNotFoundException(component, dependency);
+            }
+            if (stack.contains(dependency)) {
+                throw new CycleDependencyNotAllowed(stack);
+            }
+            stack.push(dependency);
+            checkCycleDependency(dependency, stack);
+            stack.pop();
+        }
     }
 }
