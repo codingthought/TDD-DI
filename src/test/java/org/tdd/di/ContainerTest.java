@@ -247,6 +247,14 @@ public class ContainerTest {
                 assertFalse(component.injected);
                 assertTrue(component.subInjected);
             }
+
+            @Test
+            void should_return_method_inject_dependencies_when_get_dependencies_from_provider() {
+                InjectComponentProvider<ComponentInjectDependencyWithMethod> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithMethod.class);
+
+                assertArrayEquals(new Class[] {Dependency.class}, provider.getDependencies().toArray());
+            }
+
         }
     }
     @Nested
