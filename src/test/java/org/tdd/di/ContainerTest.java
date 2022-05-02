@@ -148,6 +148,13 @@ public class ContainerTest {
                 @Inject
                 Dependency dependency;
             }
+
+            @Test
+            void should_return_filed_dependency_when_get_dependencies_from_provider() {
+                InjectConstructionProvider<ComponentInjectDependencyWithField> provider = new InjectConstructionProvider<>(ComponentInjectDependencyWithField.class);
+
+                assertArrayEquals(new Class[] {Dependency.class}, provider.getDependencies().toArray());
+            }
         }
     }
     @Nested

@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
     private final Constructor<Type> constructor;
@@ -50,6 +51,6 @@ class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
 
     @Override
     public List<Class<?>> getDependencies() {
-        return Arrays.stream(constructor.getParameterTypes()).toList();
+        return Stream.concat(Arrays.stream(fields).map(Field::getType), Arrays.stream(constructor.getParameterTypes())).toList();
     }
 }
