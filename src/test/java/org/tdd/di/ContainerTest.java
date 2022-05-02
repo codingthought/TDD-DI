@@ -151,7 +151,7 @@ public class ContainerTest {
 
             @Test
             void should_return_filed_dependency_when_get_dependencies_from_provider() {
-                InjectConstructionProvider<ComponentInjectDependencyWithField> provider = new InjectConstructionProvider<>(ComponentInjectDependencyWithField.class);
+                InjectComponentProvider<ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class);
 
                 assertArrayEquals(new Class[] {Dependency.class}, provider.getDependencies().toArray());
             }

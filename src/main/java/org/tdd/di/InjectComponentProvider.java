@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
+class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     private final Constructor<Type> constructor;
     private final Field[] fields;
 
-    InjectConstructionProvider(Class<? extends Type> component) {
+    InjectComponentProvider(Class<? extends Type> component) {
         Constructor<?>[] declaredConstructors = component.getDeclaredConstructors();
         List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
                 .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
