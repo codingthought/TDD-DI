@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
+import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.util.List;
@@ -170,6 +171,23 @@ public class ContainerTest {
                 InjectComponentProvider<ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class);
 
                 assertArrayEquals(new Class[] {Dependency.class}, provider.getDependencies().toArray());
+            }
+
+            @Test
+            void should_throw_exception_when_inject_field_is_final() {
+                FinalFieldInjectException exception = assertThrows(FinalFieldInjectException.class,
+                        () -> containerBuilder.bind(Component.class, ComponentWithFinalField.class).build());
+                assertEquals(ComponentWithFinalField.class, exception.getComponent());
+                assertEquals("dependency", exception.getFieldName());
+            }
+
+            static class ComponentWithFinalField implements Component {
+                @Inject
+                private final Dependency dependency;
+
+                ComponentWithFinalField() {
+                    dependency = null;
+                }
             }
         }
     }
