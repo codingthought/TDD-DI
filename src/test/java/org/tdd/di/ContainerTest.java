@@ -222,6 +222,31 @@ public class ContainerTest {
                     this.injected = true;
                 }
             }
+
+            static class SubComponent extends ComponentInjectDependencyWithMethod {
+                boolean subInjected = false;
+
+                @Override
+                @Inject
+                public void inject() {
+                    subInjected = true;
+                }
+            }
+
+            @Test
+            void should_call_sub_class_inject_method_only_if_override_supper_method() {
+                Dependency dependency = new Dependency() {};
+                Container container = containerBuilder
+                        .bind(SubComponent.class, SubComponent.class)
+                        .bind(Dependency.class, dependency)
+                        .build();
+
+                SubComponent component = container.get(SubComponent.class).orElse(null);
+                assertNotNull(component);
+                assertSame(dependency, component.dependency);
+                assertFalse(component.injected);
+                assertTrue(component.subInjected);
+            }
         }
     }
     @Nested
