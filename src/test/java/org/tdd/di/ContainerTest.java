@@ -205,6 +205,7 @@ public class ContainerTest {
                 assertNotNull(component);
                 assertSame(dependency, component.dependency);
             }
+
             static class ComponentInjectDependencyWithMethod implements Component {
                 @Inject
                 public void setDependency(Dependency dependency) {

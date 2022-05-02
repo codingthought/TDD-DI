@@ -4,10 +4,7 @@ import jakarta.inject.Inject;
 import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,10 +14,12 @@ import java.util.stream.Stream;
 class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     private final Constructor<Type> constructor;
     private final List<Field> fields;
+    private final List<Method> methods;
 
     InjectComponentProvider(Class<? extends Type> component) {
         constructor = getConstructor(component);
         fields = getFields(component);
+        methods = getMethods(component);
     }
 
     @Override
@@ -29,6 +28,9 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
             Type instance = constructor.newInstance(Arrays.stream(constructor.getParameterTypes()).map(p -> container.get(p).get()).toArray());
             for (Field field : fields) {
                 field.set(instance, container.get(field.getType()).get());
+            }
+            for (Method method : methods) {
+                method.invoke(instance, Arrays.stream(method.getParameterTypes()).map(p -> container.get(p).get()).toArray());
             }
             return instance;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -73,5 +75,9 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
             current = current.getSuperclass();
         }
         return fields;
+    }
+
+    private static List<Method> getMethods(Class<?> component) {
+        return Arrays.stream(component.getMethods()).filter(method -> method.isAnnotationPresent(Inject.class)).toList();
     }
 }
