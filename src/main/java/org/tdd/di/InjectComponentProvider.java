@@ -6,6 +6,7 @@ import org.tdd.di.exception.IllegalComponentException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +58,12 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     }
 
     private static List<Field> getFields(Class<?> component) {
-        return Arrays.stream(component.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Inject.class)).toList();
+        List<Field> fields = new ArrayList<>();
+        Class<?> current = component;
+        while (current != Object.class) {
+            fields.addAll(Arrays.stream(current.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Inject.class)).toList());
+            current = current.getSuperclass();
+        }
+        return fields;
     }
 }
