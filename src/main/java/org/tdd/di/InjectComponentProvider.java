@@ -16,22 +16,8 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     private final List<Field> fields;
 
     InjectComponentProvider(Class<? extends Type> component) {
-        Constructor<?>[] declaredConstructors = component.getDeclaredConstructors();
-        List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
-                .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
-        if (filteredConstructors.size() > 1) {
-            throw new IllegalComponentException();
-        }
-        if (filteredConstructors.size() == 0 &&
-                Arrays.stream(declaredConstructors).allMatch(d -> d.getParameterTypes().length > 0)) {
-            throw new IllegalComponentException();
-        }
-        if (filteredConstructors.size() == 1) {
-            constructor = (Constructor<Type>) filteredConstructors.get(0);
-        } else {
-            constructor = (Constructor<Type>) declaredConstructors[0];
-        }
-        fields = Arrays.stream(component.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Inject.class)).toList();
+        constructor = getConstructor(component);
+        fields = getFields(component);
     }
 
     @Override
@@ -50,5 +36,27 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     @Override
     public List<Class<?>> getDependencies() {
         return Stream.concat(fields.stream().map(Field::getType), Arrays.stream(constructor.getParameterTypes())).toList();
+    }
+
+    private static <Type> Constructor<Type> getConstructor(Class<? extends Type> component) {
+        Constructor<?>[] declaredConstructors = component.getDeclaredConstructors();
+        List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
+                .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
+        if (filteredConstructors.size() > 1) {
+            throw new IllegalComponentException();
+        }
+        if (filteredConstructors.size() == 0 &&
+                Arrays.stream(declaredConstructors).allMatch(d -> d.getParameterTypes().length > 0)) {
+            throw new IllegalComponentException();
+        }
+        if (filteredConstructors.size() == 1) {
+            return (Constructor<Type>) filteredConstructors.get(0);
+        } else {
+            return (Constructor<Type>) declaredConstructors[0];
+        }
+    }
+
+    private static List<Field> getFields(Class<?> component) {
+        return Arrays.stream(component.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Inject.class)).toList();
     }
 }
