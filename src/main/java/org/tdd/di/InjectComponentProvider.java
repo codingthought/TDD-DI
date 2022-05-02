@@ -6,7 +6,6 @@ import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class InjectComponentProvider<Type> implements ComponentProvider<Type> {
@@ -77,9 +76,15 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     }
 
     private static List<Method> getMethods(Class<?> component) {
-        List<Method> methods = Arrays.stream(component.getMethods())
-                .filter(method -> method.isAnnotationPresent(Inject.class))
-                .collect(Collectors.toList());
+        List<Method> methods = new ArrayList<>();
+        for (Method method : component.getMethods()) {
+            if (method.isAnnotationPresent(Inject.class)) {
+                if (method.getTypeParameters().length > 0) {
+                    throw new IllegalComponentException();
+                }
+                methods.add(method);
+            }
+        }
         Collections.reverse(methods);
         return methods;
     }

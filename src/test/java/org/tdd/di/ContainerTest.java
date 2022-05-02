@@ -28,7 +28,8 @@ public class ContainerTest {
 
         @Test
         void should_return_the_component_when_get_if_the_component_bind() {
-            Component componentImpl = new Component() {};
+            Component componentImpl = new Component() {
+            };
             containerBuilder.bind(Component.class, componentImpl);
 
             assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
@@ -134,7 +135,8 @@ public class ContainerTest {
         class InjectWithFieldTest {
             @Test
             void should_return_component_when_get_if_dependency_has_bind() {
-                Dependency dependency = new Dependency() {};
+                Dependency dependency = new Dependency() {
+                };
                 Container container = containerBuilder
                         .bind(ComponentInjectDependencyWithField.class, ComponentInjectDependencyWithField.class)
                         .bind(Dependency.class, dependency)
@@ -155,7 +157,8 @@ public class ContainerTest {
 
             @Test
             void should_inject_supper_class_fields_when_get_subclass_component() {
-                Dependency dependency = new Dependency() {};
+                Dependency dependency = new Dependency() {
+                };
                 Container container = containerBuilder
                         .bind(SubComponent.class, SubComponent.class)
                         .bind(Dependency.class, dependency)
@@ -170,7 +173,7 @@ public class ContainerTest {
             void should_return_filed_dependency_when_get_dependencies_from_provider() {
                 InjectComponentProvider<ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class);
 
-                assertArrayEquals(new Class[] {Dependency.class}, provider.getDependencies().toArray());
+                assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
             }
 
             @Test
@@ -195,7 +198,8 @@ public class ContainerTest {
         class InjectWithMethodTest {
             @Test
             void should_return_component_when_get_if_dependency_has_bind() {
-                Dependency dependency = new Dependency() {};
+                Dependency dependency = new Dependency() {
+                };
                 Container container = containerBuilder
                         .bind(ComponentInjectDependencyWithMethod.class, ComponentInjectDependencyWithMethod.class)
                         .bind(Dependency.class, dependency)
@@ -215,6 +219,7 @@ public class ContainerTest {
                 public void setDependency(Dependency dependency) {
                     this.dependency = dependency;
                 }
+
                 Dependency dependency;
 
                 @Inject
@@ -235,7 +240,8 @@ public class ContainerTest {
 
             @Test
             void should_call_sub_class_inject_method_only_if_override_supper_method() {
-                Dependency dependency = new Dependency() {};
+                Dependency dependency = new Dependency() {
+                };
                 Container container = containerBuilder
                         .bind(SubComponent.class, SubComponent.class)
                         .bind(Dependency.class, dependency)
@@ -252,13 +258,12 @@ public class ContainerTest {
             void should_return_method_inject_dependencies_when_get_dependencies_from_provider() {
                 InjectComponentProvider<ComponentInjectDependencyWithMethod> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithMethod.class);
 
-                assertArrayEquals(new Class[] {Dependency.class}, provider.getDependencies().toArray());
+                assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
             }
 
             @Test
             void should_call_supper_inject_method_before_sub_inject_method() {
-                Container container = containerBuilder.bind(SubComponentWithAnotherInjectMethod.class, SubComponentWithAnotherInjectMethod.class)
-                        .build();
+                Container container = containerBuilder.bind(SubComponentWithAnotherInjectMethod.class, SubComponentWithAnotherInjectMethod.class).build();
                 SubComponentWithAnotherInjectMethod component = container.get(SubComponentWithAnotherInjectMethod.class).orElse(null);
 
                 assertNotNull(component);
@@ -274,6 +279,7 @@ public class ContainerTest {
                     superInjectCall++;
                 }
             }
+
             static class SubComponentWithAnotherInjectMethod extends SuperComponentWithInjectMethod {
                 int subInjectCall = 0;
 
@@ -294,16 +300,27 @@ public class ContainerTest {
 
             @Test
             void should_not_call_inject_method_when_sub_override_and_no_inject() {
-                Container container = containerBuilder.bind(SubComponentOverrideMethod.class, SubComponentOverrideMethod.class)
-                        .build();
+                Container container = containerBuilder.bind(SubComponentOverrideMethod.class, SubComponentOverrideMethod.class).build();
                 SubComponentOverrideMethod component = container.get(SubComponentOverrideMethod.class).orElse(null);
 
                 assertNotNull(component);
                 assertEquals(0, component.superInjectCall);
                 assertEquals(0, component.subInjectCall);
             }
+
+            @Test
+            void should_throw_exception_when_build_inject_method_defined_class_param() {
+                assertThrows(IllegalComponentException.class, () -> new InjectComponentProvider<>(ComponentWithInjectMethodWithTypeParam.class));
+            }
+
+            static class ComponentWithInjectMethodWithTypeParam {
+                @Inject
+                public <T> void inject(T type) {
+                }
+            }
         }
     }
+
     @Nested
     class ComponentSelectionTest {
 
