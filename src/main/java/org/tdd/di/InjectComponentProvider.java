@@ -63,14 +63,13 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         List<Field> fields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            Class<?> finalCurrent = current;
-            fields.addAll(Arrays.stream(current.getDeclaredFields())
-                    .filter(field -> field.isAnnotationPresent(Inject.class))
-                    .peek(field -> {
-                        if (Modifier.isFinal(field.getModifiers())) {
-                            throw new FinalFieldInjectException(field.getName(), finalCurrent);
-                        }
-                    }).toList());
+            for (Field field : current.getDeclaredFields()) {
+                if (field.isAnnotationPresent(Inject.class)) {
+                    if (Modifier.isFinal(field.getModifiers()))
+                        throw new FinalFieldInjectException(field.getName(), current);
+                    fields.add(field);
+                }
+            }
             current = current.getSuperclass();
         }
         return fields;
