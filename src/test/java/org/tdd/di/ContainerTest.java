@@ -190,6 +190,30 @@ public class ContainerTest {
                 }
             }
         }
+
+        @Nested
+        class InjectWithMethodTest {
+            @Test
+            void should_return_component_when_get_if_dependency_has_bind() {
+                Dependency dependency = new Dependency() {};
+                Container container = containerBuilder
+                        .bind(ComponentInjectDependencyWithMethod.class, ComponentInjectDependencyWithMethod.class)
+                        .bind(Dependency.class, dependency)
+                        .build();
+
+                ComponentInjectDependencyWithMethod component = container.get(ComponentInjectDependencyWithMethod.class).orElse(null);
+                assertNotNull(component);
+                assertSame(dependency, component.dependency);
+            }
+            static class ComponentInjectDependencyWithMethod implements Component {
+                @Inject
+                public void setDependency(Dependency dependency) {
+                    this.dependency = dependency;
+                }
+                Dependency dependency;
+            }
+
+        }
     }
     @Nested
     class ComponentSelectionTest {
