@@ -5,10 +5,8 @@ import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class InjectComponentProvider<Type> implements ComponentProvider<Type> {
@@ -79,6 +77,10 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     }
 
     private static List<Method> getMethods(Class<?> component) {
-        return Arrays.stream(component.getMethods()).filter(method -> method.isAnnotationPresent(Inject.class)).toList();
+        List<Method> methods = Arrays.stream(component.getMethods())
+                .filter(method -> method.isAnnotationPresent(Inject.class))
+                .collect(Collectors.toList());
+        Collections.reverse(methods);
+        return methods;
     }
 }
