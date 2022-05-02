@@ -130,14 +130,34 @@ public class ContainerTest {
         }
 
         @Nested
-        class ComponentSelectionTest {
+        class InjectWithFieldTest {
+            @Test
+            void should_return_component_when_get_if_dependency_has_bind() {
+                Dependency dependency = new Dependency() {};
+                Container container = containerBuilder
+                        .bind(ComponentInjectDependencyWithField.class, ComponentInjectDependencyWithField.class)
+                        .bind(Dependency.class, dependency)
+                        .build();
 
+                ComponentInjectDependencyWithField component = container.get(ComponentInjectDependencyWithField.class).orElse(null);
+                assertNotNull(component);
+                assertSame(dependency, component.dependency);
+            }
+
+            static class ComponentInjectDependencyWithField implements Component {
+                @Inject
+                Dependency dependency;
+            }
         }
+    }
+    @Nested
+    class ComponentSelectionTest {
 
-        @Nested
-        class ComponentLifeCycleTest {
+    }
 
-        }
+    @Nested
+    class ComponentLifeCycleTest {
+
     }
 }
 
