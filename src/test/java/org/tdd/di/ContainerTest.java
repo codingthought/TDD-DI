@@ -149,6 +149,22 @@ public class ContainerTest {
                 Dependency dependency;
             }
 
+            static class SubComponent extends ComponentInjectDependencyWithField {
+            }
+
+            @Test
+            void should_inject_supper_class_fields_when_get_subclass_component() {
+                Dependency dependency = new Dependency() {};
+                Container container = containerBuilder
+                        .bind(SubComponent.class, SubComponent.class)
+                        .bind(Dependency.class, dependency)
+                        .build();
+
+                SubComponent component = container.get(SubComponent.class).orElse(null);
+                assertNotNull(component);
+                assertSame(dependency, component.dependency);
+            }
+
             @Test
             void should_return_filed_dependency_when_get_dependencies_from_provider() {
                 InjectComponentProvider<ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class);
