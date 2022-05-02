@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     private final Constructor<Type> constructor;
-    private final Field[] fields;
+    private final List<Field> fields;
 
     InjectComponentProvider(Class<? extends Type> component) {
         Constructor<?>[] declaredConstructors = component.getDeclaredConstructors();
@@ -31,7 +31,7 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         } else {
             constructor = (Constructor<Type>) declaredConstructors[0];
         }
-        fields = component.getDeclaredFields();
+        fields = Arrays.stream(component.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Inject.class)).toList();
     }
 
     @Override
@@ -39,9 +39,7 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         try {
             Type instance = constructor.newInstance(Arrays.stream(constructor.getParameterTypes()).map(p -> container.get(p).get()).toArray());
             for (Field field : fields) {
-                if (field.getAnnotation(Inject.class) != null) {
-                    field.set(instance, container.get(field.getType()).get());
-                }
+                field.set(instance, container.get(field.getType()).get());
             }
             return instance;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -51,6 +49,6 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
 
     @Override
     public List<Class<?>> getDependencies() {
-        return Stream.concat(Arrays.stream(fields).map(Field::getType), Arrays.stream(constructor.getParameterTypes())).toList();
+        return Stream.concat(fields.stream().map(Field::getType), Arrays.stream(constructor.getParameterTypes())).toList();
     }
 }
