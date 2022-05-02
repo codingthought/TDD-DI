@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Objects;
 
 class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
     private final Constructor<Type> constructor;
+    private final Field[] fields;
 
     InjectConstructionProvider(Class<? extends Type> component) {
         Constructor<?>[] declaredConstructors = component.getDeclaredConstructors();
@@ -28,12 +30,19 @@ class InjectConstructionProvider<Type> implements ComponentProvider<Type> {
         } else {
             constructor = (Constructor<Type>) declaredConstructors[0];
         }
+        fields = component.getDeclaredFields();
     }
 
     @Override
     public Type getFrom(Container container) {
         try {
-            return constructor.newInstance(Arrays.stream(constructor.getParameterTypes()).map(p -> container.get(p).get()).toArray());
+            Type instance = constructor.newInstance(Arrays.stream(constructor.getParameterTypes()).map(p -> container.get(p).get()).toArray());
+            for (Field field : fields) {
+                if (field.getAnnotation(Inject.class) != null) {
+                    field.set(instance, container.get(field.getType()).get());
+                }
+            }
+            return instance;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
