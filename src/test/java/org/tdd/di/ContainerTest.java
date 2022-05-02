@@ -255,6 +255,33 @@ public class ContainerTest {
                 assertArrayEquals(new Class[] {Dependency.class}, provider.getDependencies().toArray());
             }
 
+            @Test
+            void should_call_supper_inject_method_before_sub_inject_method() {
+                Container container = containerBuilder.bind(SubComponentWithAnotherInjectMethod.class, SubComponentWithAnotherInjectMethod.class)
+                        .build();
+                SubComponentWithAnotherInjectMethod component = container.get(SubComponentWithAnotherInjectMethod.class).orElse(null);
+
+                assertNotNull(component);
+                assertEquals(1, component.superInjectCall);
+                assertEquals(2, component.subInjectCall);
+            }
+
+            static class SuperComponentWithInjectMethod {
+                int superInjectCall = 0;
+
+                @Inject
+                public void supperInject() {
+                    superInjectCall++;
+                }
+            }
+            static class SubComponentWithAnotherInjectMethod extends SuperComponentWithInjectMethod {
+                int subInjectCall = 0;
+
+                @Inject
+                public void subInject() {
+                    subInjectCall = super.superInjectCall + 1;
+                }
+            }
         }
     }
     @Nested
