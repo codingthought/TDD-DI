@@ -282,6 +282,26 @@ public class ContainerTest {
                     subInjectCall = super.superInjectCall + 1;
                 }
             }
+
+            static class SubComponentOverrideMethod extends SuperComponentWithInjectMethod {
+                int subInjectCall = 0;
+
+                @Override
+                public void supperInject() {
+                    subInjectCall++;
+                }
+            }
+
+            @Test
+            void should_not_call_inject_method_when_sub_override_and_no_inject() {
+                Container container = containerBuilder.bind(SubComponentOverrideMethod.class, SubComponentOverrideMethod.class)
+                        .build();
+                SubComponentOverrideMethod component = container.get(SubComponentOverrideMethod.class).orElse(null);
+
+                assertNotNull(component);
+                assertEquals(0, component.superInjectCall);
+                assertEquals(0, component.subInjectCall);
+            }
         }
     }
     @Nested
