@@ -1,11 +1,13 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +63,14 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         List<Field> fields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            fields.addAll(Arrays.stream(current.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Inject.class)).toList());
+            Class<?> finalCurrent = current;
+            fields.addAll(Arrays.stream(current.getDeclaredFields())
+                    .filter(field -> field.isAnnotationPresent(Inject.class))
+                    .peek(field -> {
+                        if (Modifier.isFinal(field.getModifiers())) {
+                            throw new FinalFieldInjectException(field.getName(), finalCurrent);
+                        }
+                    }).toList());
             current = current.getSuperclass();
         }
         return fields;
