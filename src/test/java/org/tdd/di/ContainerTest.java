@@ -204,16 +204,24 @@ public class ContainerTest {
                 ComponentInjectDependencyWithMethod component = container.get(ComponentInjectDependencyWithMethod.class).orElse(null);
                 assertNotNull(component);
                 assertSame(dependency, component.dependency);
+                // 通过 Inject 标注的无参数方法，会被调用。
+                assertTrue(component.injected);
             }
 
             static class ComponentInjectDependencyWithMethod implements Component {
+                boolean injected = false;
+
                 @Inject
                 public void setDependency(Dependency dependency) {
                     this.dependency = dependency;
                 }
                 Dependency dependency;
-            }
 
+                @Inject
+                public void inject() {
+                    this.injected = true;
+                }
+            }
         }
     }
     @Nested
