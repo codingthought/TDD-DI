@@ -37,33 +37,17 @@ class InjectTest {
         void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
             Component component = new InjectComponentProvider<>(ComponentNoDependency.class).getFrom(container);
             assertNotNull(component);
-            assertTrue(component instanceof Component);
         }
 
         @Test
         void should_return_a_correct_component_when_get_if_the_bind_component_has_dependency() {
-            when(container.get(Component.class)).thenReturn(Optional.of(mock(ComponentNoDependency.class)));
+            ComponentNoDependency dependency = mock(ComponentNoDependency.class);
+            when(container.get(Component.class)).thenReturn(Optional.of(dependency));
 
-            AnotherComponent component = new InjectComponentProvider<>(ComponentWithDependency.class).getFrom(container);
-
-            assertNotNull(component);
-            assertTrue(component instanceof ComponentWithDependency);
-            assertNotNull(((ComponentWithDependency) component).getDependency());
-        }
-
-        @Test
-        void should_return_a_correct_component_when_get_if_bind_transitive_dependency_component() {
-            when(container.get(Component.class)).thenReturn(Optional.of(new ComponentDependencyString("dependency")));
-
-            AnotherComponent component = new InjectComponentProvider<>(ComponentWithDependency.class).getFrom(container);
+            ComponentWithDependency component = new InjectComponentProvider<>(ComponentWithDependency.class).getFrom(container);
 
             assertNotNull(component);
-            assertTrue(component instanceof ComponentWithDependency);
-
-            Component dependency = ((ComponentWithDependency) component).getDependency();
-            assertNotNull(dependency);
-
-            assertEquals("dependency", ((ComponentDependencyString) dependency).getDependency());
+            assertSame(dependency, component.getDependency());
         }
 
         @Test
