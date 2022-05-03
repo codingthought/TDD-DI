@@ -38,17 +38,16 @@ class InjectTest {
 
         @Test
         void should_return_a_component_when_get_if_the_bind_component_no_dependency() {
-            Component component = getComponent(ComponentNoDependency.class);
+            Component component = new InjectComponentProvider<>(ComponentNoDependency.class).getFrom(container);
             assertNotNull(component);
             assertTrue(component instanceof Component);
         }
 
         @Test
         void should_return_a_correct_component_when_get_if_the_bind_component_has_dependency() {
-            containerBuilder.bind(Component.class, ComponentNoDependency.class);
             when(container.get(Component.class)).thenReturn(Optional.of(mock(ComponentNoDependency.class)));
 
-            AnotherComponent component = getComponent(ComponentWithDependency.class);
+            AnotherComponent component = new InjectComponentProvider<>(ComponentWithDependency.class).getFrom(container);
 
             assertNotNull(component);
             assertTrue(component instanceof ComponentWithDependency);
@@ -57,11 +56,9 @@ class InjectTest {
 
         @Test
         void should_return_a_correct_component_when_get_if_bind_transitive_dependency_component() {
-            containerBuilder.bind(Component.class, ComponentDependencyString.class)
-                    .bind(String.class, "dependency");
             when(container.get(Component.class)).thenReturn(Optional.of(new ComponentDependencyString("dependency")));
 
-            AnotherComponent component = getComponent(ComponentWithDependency.class);
+            AnotherComponent component = new InjectComponentProvider<>(ComponentWithDependency.class).getFrom(container);
 
             assertNotNull(component);
             assertTrue(component instanceof ComponentWithDependency);
@@ -86,15 +83,11 @@ class InjectTest {
 
     }
 
-    private <Type, Impl extends Type> Type getComponent(Class<Impl> implType) {
-        return new InjectComponentProvider<>(implType).getFrom(container);
-    }
-
     @Nested
     class InjectWithFieldTest {
         @Test
         void should_return_component_when_get_if_dependency_has_bind() {
-            ComponentInjectDependencyWithField component = getComponent(ComponentInjectDependencyWithField.class);
+            ComponentInjectDependencyWithField component = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class).getFrom(container);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
         }
@@ -109,7 +102,7 @@ class InjectTest {
 
         @Test
         void should_inject_supper_class_fields_when_get_subclass_component() {
-            SubComponent component = getComponent(SubComponent.class);
+            SubComponent component = new InjectComponentProvider<>(SubComponent.class).getFrom(container);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
         }
@@ -124,7 +117,7 @@ class InjectTest {
         @Test
         void should_throw_exception_when_inject_field_is_final() {
             FinalFieldInjectException exception = assertThrows(FinalFieldInjectException.class,
-                    () -> getComponent(ComponentWithFinalField.class));
+                    () -> new InjectComponentProvider<>(ComponentWithFinalField.class).getFrom(container));
             assertEquals(ComponentWithFinalField.class, exception.getComponent());
             assertEquals("dependency", exception.getFieldName());
         }
@@ -143,7 +136,7 @@ class InjectTest {
     class InjectWithMethodTest {
         @Test
         void should_return_component_when_get_if_dependency_has_bind() {
-            ComponentInjectDependencyWithMethod component = getComponent(ComponentInjectDependencyWithMethod.class);
+            ComponentInjectDependencyWithMethod component = new InjectComponentProvider<>(ComponentInjectDependencyWithMethod.class).getFrom(container);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
             // 通过 Inject 标注的无参数方法，会被调用。
@@ -178,7 +171,7 @@ class InjectTest {
 
         @Test
         void should_call_sub_class_inject_method_only_if_override_supper_method() {
-            SubComponent component = getComponent(SubComponent.class);
+            SubComponent component = new InjectComponentProvider<>(SubComponent.class).getFrom(container);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
             assertFalse(component.injected);
@@ -194,7 +187,7 @@ class InjectTest {
 
         @Test
         void should_call_supper_inject_method_before_sub_inject_method() {
-            SubComponentWithAnotherInjectMethod component = getComponent(SubComponentWithAnotherInjectMethod.class);
+            SubComponentWithAnotherInjectMethod component = new InjectComponentProvider<>(SubComponentWithAnotherInjectMethod.class).getFrom(container);
 
             assertNotNull(component);
             assertEquals(1, component.superInjectCall);
@@ -231,7 +224,7 @@ class InjectTest {
         @Test
         void should_not_call_inject_method_when_sub_override_and_no_inject() {
 
-            SubComponentOverrideMethod component = getComponent(SubComponentOverrideMethod.class);
+            SubComponentOverrideMethod component = new InjectComponentProvider<>(SubComponentOverrideMethod.class).getFrom(container);
 
             assertNotNull(component);
             assertEquals(0, component.superInjectCall);
