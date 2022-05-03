@@ -89,11 +89,11 @@ class InjectTest {
             Dependency dependency = new Dependency() {
             };
             Container container = containerBuilder
-                    .bind(InjectWithFieldTest.ComponentInjectDependencyWithField.class, InjectWithFieldTest.ComponentInjectDependencyWithField.class)
+                    .bind(ComponentInjectDependencyWithField.class, ComponentInjectDependencyWithField.class)
                     .bind(Dependency.class, dependency)
                     .build();
 
-            InjectWithFieldTest.ComponentInjectDependencyWithField component = container.get(InjectWithFieldTest.ComponentInjectDependencyWithField.class).orElse(null);
+            ComponentInjectDependencyWithField component = container.get(ComponentInjectDependencyWithField.class).orElse(null);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
         }
@@ -103,7 +103,7 @@ class InjectTest {
             Dependency dependency;
         }
 
-        static class SubComponent extends InjectWithFieldTest.ComponentInjectDependencyWithField {
+        static class SubComponent extends ComponentInjectDependencyWithField {
         }
 
         @Test
@@ -111,18 +111,18 @@ class InjectTest {
             Dependency dependency = new Dependency() {
             };
             Container container = containerBuilder
-                    .bind(InjectWithFieldTest.SubComponent.class, InjectWithFieldTest.SubComponent.class)
+                    .bind(SubComponent.class, SubComponent.class)
                     .bind(Dependency.class, dependency)
                     .build();
 
-            InjectWithFieldTest.SubComponent component = container.get(InjectWithFieldTest.SubComponent.class).orElse(null);
+            SubComponent component = container.get(SubComponent.class).orElse(null);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
         }
 
         @Test
         void should_return_filed_dependency_when_get_dependencies_from_provider() {
-            InjectComponentProvider<InjectWithFieldTest.ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(InjectWithFieldTest.ComponentInjectDependencyWithField.class);
+            InjectComponentProvider<ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class);
 
             assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
         }
@@ -130,8 +130,8 @@ class InjectTest {
         @Test
         void should_throw_exception_when_inject_field_is_final() {
             FinalFieldInjectException exception = assertThrows(FinalFieldInjectException.class,
-                    () -> containerBuilder.bind(Component.class, InjectWithFieldTest.ComponentWithFinalField.class).build());
-            assertEquals(InjectWithFieldTest.ComponentWithFinalField.class, exception.getComponent());
+                    () -> containerBuilder.bind(Component.class, ComponentWithFinalField.class).build());
+            assertEquals(ComponentWithFinalField.class, exception.getComponent());
             assertEquals("dependency", exception.getFieldName());
         }
 
@@ -152,11 +152,11 @@ class InjectTest {
             Dependency dependency = new Dependency() {
             };
             Container container = containerBuilder
-                    .bind(InjectWithMethodTest.ComponentInjectDependencyWithMethod.class, InjectWithMethodTest.ComponentInjectDependencyWithMethod.class)
+                    .bind(ComponentInjectDependencyWithMethod.class, ComponentInjectDependencyWithMethod.class)
                     .bind(Dependency.class, dependency)
                     .build();
 
-            InjectWithMethodTest.ComponentInjectDependencyWithMethod component = container.get(InjectWithMethodTest.ComponentInjectDependencyWithMethod.class).orElse(null);
+            ComponentInjectDependencyWithMethod component = container.get(ComponentInjectDependencyWithMethod.class).orElse(null);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
             // 通过 Inject 标注的无参数方法，会被调用。
@@ -179,7 +179,7 @@ class InjectTest {
             }
         }
 
-        static class SubComponent extends InjectWithMethodTest.ComponentInjectDependencyWithMethod {
+        static class SubComponent extends ComponentInjectDependencyWithMethod {
             boolean subInjected = false;
 
             @Override
@@ -194,11 +194,11 @@ class InjectTest {
             Dependency dependency = new Dependency() {
             };
             Container container = containerBuilder
-                    .bind(InjectWithMethodTest.SubComponent.class, InjectWithMethodTest.SubComponent.class)
+                    .bind(SubComponent.class, SubComponent.class)
                     .bind(Dependency.class, dependency)
                     .build();
 
-            InjectWithMethodTest.SubComponent component = container.get(InjectWithMethodTest.SubComponent.class).orElse(null);
+            SubComponent component = container.get(SubComponent.class).orElse(null);
             assertNotNull(component);
             assertSame(dependency, component.dependency);
             assertFalse(component.injected);
@@ -207,15 +207,15 @@ class InjectTest {
 
         @Test
         void should_return_method_inject_dependencies_when_get_dependencies_from_provider() {
-            InjectComponentProvider<InjectWithMethodTest.ComponentInjectDependencyWithMethod> provider = new InjectComponentProvider<>(InjectWithMethodTest.ComponentInjectDependencyWithMethod.class);
+            InjectComponentProvider<ComponentInjectDependencyWithMethod> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithMethod.class);
 
             assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
         }
 
         @Test
         void should_call_supper_inject_method_before_sub_inject_method() {
-            Container container = containerBuilder.bind(InjectWithMethodTest.SubComponentWithAnotherInjectMethod.class, InjectWithMethodTest.SubComponentWithAnotherInjectMethod.class).build();
-            InjectWithMethodTest.SubComponentWithAnotherInjectMethod component = container.get(InjectWithMethodTest.SubComponentWithAnotherInjectMethod.class).orElse(null);
+            Container container = containerBuilder.bind(SubComponentWithAnotherInjectMethod.class, SubComponentWithAnotherInjectMethod.class).build();
+            SubComponentWithAnotherInjectMethod component = container.get(SubComponentWithAnotherInjectMethod.class).orElse(null);
 
             assertNotNull(component);
             assertEquals(1, component.superInjectCall);
@@ -231,7 +231,7 @@ class InjectTest {
             }
         }
 
-        static class SubComponentWithAnotherInjectMethod extends InjectWithMethodTest.SuperComponentWithInjectMethod {
+        static class SubComponentWithAnotherInjectMethod extends SuperComponentWithInjectMethod {
             int subInjectCall = 0;
 
             @Inject
@@ -240,7 +240,7 @@ class InjectTest {
             }
         }
 
-        static class SubComponentOverrideMethod extends InjectWithMethodTest.SuperComponentWithInjectMethod {
+        static class SubComponentOverrideMethod extends SuperComponentWithInjectMethod {
             int subInjectCall = 0;
 
             @Override
@@ -251,8 +251,8 @@ class InjectTest {
 
         @Test
         void should_not_call_inject_method_when_sub_override_and_no_inject() {
-            Container container = containerBuilder.bind(InjectWithMethodTest.SubComponentOverrideMethod.class, InjectWithMethodTest.SubComponentOverrideMethod.class).build();
-            InjectWithMethodTest.SubComponentOverrideMethod component = container.get(InjectWithMethodTest.SubComponentOverrideMethod.class).orElse(null);
+            Container container = containerBuilder.bind(SubComponentOverrideMethod.class, SubComponentOverrideMethod.class).build();
+            SubComponentOverrideMethod component = container.get(SubComponentOverrideMethod.class).orElse(null);
 
             assertNotNull(component);
             assertEquals(0, component.superInjectCall);
@@ -261,7 +261,7 @@ class InjectTest {
 
         @Test
         void should_throw_exception_when_build_inject_method_defined_class_param() {
-            assertThrows(IllegalComponentException.class, () -> new InjectComponentProvider<>(InjectWithMethodTest.ComponentWithInjectMethodWithTypeParam.class));
+            assertThrows(IllegalComponentException.class, () -> new InjectComponentProvider<>(ComponentWithInjectMethodWithTypeParam.class));
         }
 
         static class ComponentWithInjectMethodWithTypeParam {
