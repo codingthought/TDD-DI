@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class InjectTest {
 
-    private ContainerBuilder containerBuilder;
     @Mock
     private Dependency dependency;
     @Mock(lenient = true)
@@ -28,8 +27,6 @@ class InjectTest {
 
     @BeforeEach
     public void setup() {
-        containerBuilder = new ContainerBuilder();
-        containerBuilder.bind(Dependency.class, dependency);
         when(container.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
     }
 
@@ -72,13 +69,13 @@ class InjectTest {
         @Test
         void should_throw_Exception_when_bind_if_multi_inject_constructor_provided() {
             assertThrows(IllegalComponentException.class, () ->
-                    containerBuilder.bind(Component.class, ComponentWithMultiInjectConstructor.class));
+                    new InjectComponentProvider<>(ComponentWithMultiInjectConstructor.class));
         }
 
         @Test
         void should_throw_Exception_when_bind_if_no_inject_nor_default_constructor_provided() {
-            assertThrows(IllegalComponentException.class,
-                    () -> containerBuilder.bind(Component.class, ComponentWithNoInjectNorDefaultConstructor.class));
+            assertThrows(IllegalComponentException.class, () ->
+                    new InjectComponentProvider<>(ComponentWithNoInjectNorDefaultConstructor.class));
         }
 
     }
