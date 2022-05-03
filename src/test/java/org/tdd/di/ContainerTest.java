@@ -9,6 +9,7 @@ import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,6 +32,12 @@ public class ContainerTest {
             containerBuilder.bind(Component.class, componentImpl);
 
             assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
+        }
+
+        @Test
+        void should_return_empty_when_get_if_not_bind() {
+            Optional<Component> component = containerBuilder.build().get(Component.class);
+            assertTrue(component.isEmpty());
         }
 
         @Test
