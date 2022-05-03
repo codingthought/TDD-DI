@@ -14,6 +14,9 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     private final List<Method> methods;
 
     InjectComponentProvider(Class<? extends Type> component) {
+        if (Modifier.isAbstract(component.getModifiers())) {
+            throw new IllegalComponentException();
+        }
         constructor = getConstructor(component);
         fields = getFields(component);
         methods = getMethods(component);

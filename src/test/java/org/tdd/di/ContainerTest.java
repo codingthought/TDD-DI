@@ -35,6 +35,17 @@ public class ContainerTest {
             assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
         }
 
+        @Test
+        void should_throw_exception_if_abstract_or_interface() {
+            assertThrows(IllegalComponentException.class, () -> new InjectComponentProvider<>(AbstractComponent.class));
+            assertThrows(IllegalComponentException.class, () -> new InjectComponentProvider<>(Component.class));
+        }
+
+        static abstract class AbstractComponent implements Component {
+            public AbstractComponent() {
+            }
+        }
+
         @Nested
         class InjectWithConstructorTest {
 
