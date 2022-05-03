@@ -122,6 +122,10 @@ class ComponentDependentDependency implements Component {
     }
 
     private final Dependency dependency;
+
+    public Dependency getDependency() {
+        return dependency;
+    }
 }
 
 class ComponentDependentAnother implements Dependency {
