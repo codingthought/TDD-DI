@@ -12,6 +12,7 @@ import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,11 +27,12 @@ class InjectTest {
     private Provider<Dependency> dependencyProvider;
     @Mock(lenient = true)
     private Container container;
+    private ParameterizedType providerType;
 
     @BeforeEach
     public void setup() throws NoSuchFieldException {
         when(container.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
-        ParameterizedType providerType = (ParameterizedType) getClass().getDeclaredField("dependencyProvider").getGenericType();
+        providerType = (ParameterizedType) getClass().getDeclaredField("dependencyProvider").getGenericType();
         when(container.get(eq(providerType))).thenReturn(Optional.of(dependencyProvider));
     }
 
@@ -54,10 +56,17 @@ class InjectTest {
             }
 
             @Test
-            void should_include_constructor_dependency_when_get_dependencies_from_provider() {
+            void should_include_constructor_dependency_when_get_dependencies() {
                 InjectComponentProvider<ComponentDependentDependency> provider = new InjectComponentProvider<>(ComponentDependentDependency.class);
 
                 assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
+            }
+
+            @Test
+            void should_include_provider_type_dependency_when_get_type_dependencies() {
+                InjectComponentProvider<ConstructorInjectProvider> provider = new InjectComponentProvider<>(ConstructorInjectProvider.class);
+
+                assertArrayEquals(new Type[]{providerType}, provider.getTypeDependencies().toArray());
             }
 
             @Test
@@ -69,7 +78,6 @@ class InjectTest {
 
             static class ConstructorInjectProvider {
                 Provider<Dependency> dependency;
-
                 @Inject
                 public ConstructorInjectProvider(Provider<Dependency> dependency) {
                     this.dependency = dependency;
