@@ -128,7 +128,7 @@ class InjectTest {
             }
 
             @Test
-            void should_return_filed_dependency_when_get_dependencies_from_provider() {
+            void should_return_filed_dependency_when_get_dependencies() {
                 InjectComponentProvider<ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class);
 
                 assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
@@ -224,13 +224,6 @@ class InjectTest {
             }
 
             @Test
-            void should_return_method_inject_dependencies_when_get_dependencies_from_provider() {
-                InjectComponentProvider<ComponentInjectDependencyWithMethod> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithMethod.class);
-
-                assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
-            }
-
-            @Test
             void should_call_supper_inject_method_before_sub_inject_method() {
                 SubComponentWithAnotherInjectMethod component = new InjectComponentProvider<>(SubComponentWithAnotherInjectMethod.class).getFrom(container);
 
@@ -240,32 +233,32 @@ class InjectTest {
             }
 
             static class SuperComponentWithInjectMethod {
-                int superInjectCall = 0;
 
+                int superInjectCall = 0;
                 @Inject
                 public void supperInject() {
                     superInjectCall++;
                 }
+
             }
-
             static class SubComponentWithAnotherInjectMethod extends SuperComponentWithInjectMethod {
-                int subInjectCall = 0;
 
+                int subInjectCall = 0;
                 @Inject
                 public void subInject() {
                     subInjectCall = super.superInjectCall + 1;
                 }
+
             }
-
             static class SubComponentOverrideMethod extends SuperComponentWithInjectMethod {
-                int subInjectCall = 0;
 
+                int subInjectCall = 0;
                 @Override
                 public void supperInject() {
                     subInjectCall++;
                 }
-            }
 
+            }
             @Test
             void should_not_call_inject_method_when_sub_override_and_no_inject() {
 
@@ -274,6 +267,13 @@ class InjectTest {
                 assertNotNull(component);
                 assertEquals(0, component.superInjectCall);
                 assertEquals(0, component.subInjectCall);
+            }
+
+            @Test
+            void should_return_method_inject_dependencies_when_get_dependencies() {
+                InjectComponentProvider<ComponentInjectDependencyWithMethod> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithMethod.class);
+
+                assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
             }
 
             @Test
