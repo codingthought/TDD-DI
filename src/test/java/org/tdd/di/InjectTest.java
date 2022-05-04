@@ -135,6 +135,13 @@ class InjectTest {
             }
 
             @Test
+            void should_include_provider_type_dependency_when_get_type_dependencies() {
+                InjectComponentProvider<FieldInjectProvider> provider = new InjectComponentProvider<>(FieldInjectProvider.class);
+
+                assertArrayEquals(new Type[]{providerType}, provider.getTypeDependencies().toArray());
+            }
+
+            @Test
             void should_support_inject_provider_dependency_via_inject_field() {
                 FieldInjectProvider instance = new InjectComponentProvider<>(FieldInjectProvider.class).getFrom(container);
 
