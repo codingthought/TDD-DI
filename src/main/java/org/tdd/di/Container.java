@@ -19,9 +19,9 @@ public class Container {
     }
 
     public Optional<Provider<?>> get(ParameterizedType parameterizedType) {
-        if (parameterizedType.getRawType() != Provider.class) throw new UnsupportedTypeException();
+        if (parameterizedType.getRawType() != Provider.class) throw new UnsupportedTypeException(parameterizedType.getRawType());
         Class<?> actualType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
         return Optional.ofNullable(componentProviders.get(actualType))
-                .map(provider -> (Provider<?>) () -> provider.getFrom(this));
+                .map(provider -> () -> provider.getFrom(this));
     }
 }
