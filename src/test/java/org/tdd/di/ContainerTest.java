@@ -162,6 +162,14 @@ public class ContainerTest {
             }
 
             @Test
+            void should_return_empty_when_get_if_provider_type_not_bind() throws NoSuchFieldException {
+                Optional<Provider<?>> provider = containerBuilder.build().get(
+                        (ParameterizedType)FieldInjectProvider.class.getDeclaredField("dependency").getGenericType());
+
+                assertTrue(provider.isEmpty());
+            }
+
+            @Test
             void should_support_get_bind_type_as_provider() {
                 Component instance = new Component() {
                 };
