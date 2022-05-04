@@ -246,6 +246,21 @@ class InjectTest {
                 assertEquals(0, component.superInjectCall);
                 assertEquals(0, component.subInjectCall);
             }
+
+            @Test
+            void should_support_inject_provider_dependency_via_inject_method() {
+                MethodInjectProvider instance = new InjectComponentProvider<>(MethodInjectProvider.class).getFrom(container);
+
+                assertSame(dependencyProvider, instance.dependency);
+            }
+
+            static class MethodInjectProvider {
+                Provider<Dependency> dependency;
+                @Inject
+                public void setDependency(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+            }
         }
 
         @Nested
