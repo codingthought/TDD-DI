@@ -5,10 +5,7 @@ import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -103,12 +100,11 @@ class InjectComponentProvider<T> implements ComponentProvider<T> {
     }
 
     private static Object[] toDependencies(Executable executable, Container container) {
-        return Arrays.stream(executable.getParameters()).map(Parameter::getParameterizedType).map(type -> {
-            if (type instanceof ParameterizedType) {
-                return container.get((ParameterizedType) type).get();
-            }
-            return container.get((Class<?>) type).get();
-        }).toArray();
+        return Arrays.stream(executable.getParameters())
+                .map(Parameter::getParameterizedType)
+                .map(type -> (type instanceof ParameterizedType ?
+                        container.get((ParameterizedType) type) : container.get((Class<?>) type)))
+                .map(Optional::get).toArray();
     }
 
     private Object toDependency(Field field, Container container) {
