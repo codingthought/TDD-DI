@@ -277,6 +277,13 @@ class InjectTest {
             }
 
             @Test
+            void should_include_provider_type_dependency_when_get_type_dependencies() {
+                InjectComponentProvider<MethodInjectProvider> provider = new InjectComponentProvider<>(MethodInjectProvider.class);
+
+                assertArrayEquals(new Type[]{providerType}, provider.getTypeDependencies().toArray());
+            }
+
+            @Test
             void should_support_inject_provider_dependency_via_inject_method() {
                 MethodInjectProvider instance = new InjectComponentProvider<>(MethodInjectProvider.class).getFrom(container);
 
