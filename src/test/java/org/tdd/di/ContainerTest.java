@@ -140,13 +140,19 @@ public class ContainerTest {
             @ParameterizedTest(name = "supporting {0}")
             @MethodSource("ComponentWithDependencyClassProvider")
             void should_bind_type_to_an_injectable_component(Class<? extends Component> componentClass) {
-                Dependency dependency = new Dependency() {
+                Dependency dependencyImpl = new Dependency() {
                 };
-                containerBuilder.bind(Dependency.class, dependency).bind(Component.class, componentClass);
+                containerBuilder.bind(Dependency.class, dependencyImpl).bind(Component.class, componentClass);
 
                 Optional<Component> componentOpl = containerBuilder.build().get(Component.class);
                 assertTrue(componentOpl.isPresent());
-                assertSame(dependency, componentOpl.get().getDependency());
+
+                Object dependency = componentOpl.get().getDependency();
+                if (dependency instanceof Provider) {
+                    assertSame(dependencyImpl, ((Provider<?>) dependency).get());
+                } else {
+                    assertSame(dependencyImpl, dependency);
+                }
             }
 
             @Test

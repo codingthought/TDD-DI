@@ -3,6 +3,7 @@ package org.tdd.di;
 import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -27,17 +28,23 @@ public class ContainerBuilder {
     }
 
     private void checkCycleDependency(Class<?> component, Stack<Class<?>> stack) {
-        for (Class<?> dependency : componentProviders.get(component).getDependencies()) {
-            if (!componentProviders.containsKey(dependency)) {
-                throw new DependencyNotFoundException(component, dependency);
+        for (Type dependency : componentProviders.get(component).getTypeDependencies()) {
+            if (dependency instanceof Class<?>) {
+                checkDependency(component, stack, (Class<?>) dependency);
             }
-            if (stack.contains(dependency)) {
-                throw new CycleDependencyNotAllowed(stack);
-            }
-            stack.push(dependency);
-            checkCycleDependency(dependency, stack);
-            stack.pop();
         }
+    }
+
+    private void checkDependency(Class<?> component, Stack<Class<?>> stack, Class<?> dependency) {
+        if (!componentProviders.containsKey(dependency)) {
+            throw new DependencyNotFoundException(component, dependency);
+        }
+        if (stack.contains(dependency)) {
+            throw new CycleDependencyNotAllowed(stack);
+        }
+        stack.push(dependency);
+        checkCycleDependency(dependency, stack);
+        stack.pop();
     }
 
 }
