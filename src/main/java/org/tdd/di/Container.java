@@ -1,5 +1,7 @@
 package org.tdd.di;
 
+import jakarta.inject.Provider;
+
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 import java.util.Optional;
@@ -12,10 +14,12 @@ public class Container {
     }
 
     public <Type> Optional<Type> get(Class<Type> type) {
-        return Optional.ofNullable(componentProviders.get(type)).map(p -> (Type) p.getFrom(this));
+        return Optional.ofNullable(componentProviders.get(type)).map(provider -> (Type) provider.getFrom(this));
     }
 
     public Optional<?> get(ParameterizedType parameterizedType) {
-        return Optional.empty();
+        Class<?> actualType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+        return Optional.of(componentProviders.get(actualType))
+                .map(provider -> (Provider<?>) () -> provider.getFrom(this));
     }
 }
