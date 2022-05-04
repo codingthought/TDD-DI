@@ -1,6 +1,7 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Nested;
@@ -12,6 +13,7 @@ import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -62,6 +64,7 @@ public class ContainerTest {
                     return dependency;
                 }
             }
+
             static class FieldInject implements Component {
                 @Inject
                 Dependency dependency;
@@ -71,6 +74,7 @@ public class ContainerTest {
                     return dependency;
                 }
             }
+
             static class MethodInject implements Component {
                 Dependency dependency;
 
@@ -78,6 +82,7 @@ public class ContainerTest {
                 public void setDependency(Dependency dependency) {
                     this.dependency = dependency;
                 }
+
                 @Override
                 public Dependency getDependency() {
                     return dependency;
@@ -106,6 +111,26 @@ public class ContainerTest {
             void should_return_empty_when_get_if_type_not_bind() {
                 Optional<Component> component = containerBuilder.build().get(Component.class);
                 assertTrue(component.isEmpty());
+            }
+
+            @Test
+            void should_support_get_bind_type_as_provider() {
+                Component instance = new Component() {
+                };
+                Container container = containerBuilder.bind(Component.class, instance).build();
+                ParameterizedType parameterizedType = new TypeWrapper<Provider<Component>>() {
+                }.getType();
+
+                Optional<?> provider = container.get(parameterizedType);
+
+                assertTrue(provider.isPresent());
+                assertSame(instance, ((Provider<Component>) provider.get()).get());
+            }
+
+            abstract class TypeWrapper<T> {
+                public ParameterizedType getType() {
+                    return (ParameterizedType) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+                }
             }
 
             @Test
@@ -160,6 +185,7 @@ public class ContainerTest {
         }
 
     }
+
     @Nested
     class ComponentSelectionTest {
 
