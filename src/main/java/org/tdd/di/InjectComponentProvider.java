@@ -96,7 +96,12 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     }
 
     private static Object[] toDependencies(Executable executable, Container container) {
-        return Arrays.stream(executable.getParameterTypes()).map(p -> container.get(p).get()).toArray();
+        return Arrays.stream(executable.getParameters()).map(Parameter::getParameterizedType).map(type -> {
+            if (type instanceof ParameterizedType) {
+                return container.get((ParameterizedType) type).get();
+            }
+            return container.get((Class<?>) type).get();
+        }).toArray();
     }
 
     private Object toDependency(Field field, Container container) {
