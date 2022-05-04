@@ -275,6 +275,24 @@ public class ContainerTest {
                 assertTrue(components.contains(Dependency.class));
                 assertTrue(components.contains(AnotherComponent.class));
             }
+
+            @Test
+            void should_not_throw_Exception_when_bind_if_cycle_dependency_via_provider() {
+                Container container = containerBuilder.bind(Component.class, ComponentDependentDependency.class)
+                        .bind(Dependency.class, DependencyDependentProviderComponent.class).build();
+                Optional<Component> component = container.get(Component.class);
+                Optional<Dependency> dependency = container.get(Dependency.class);
+
+                assertTrue(component.isPresent());
+                assertTrue(dependency.isPresent());
+                assertTrue(((ComponentDependentDependency) component.get()).dependency instanceof Dependency);
+                assertTrue(((DependencyDependentProviderComponent) dependency.get()).componentProvider.get() instanceof Component);
+            }
+
+            static class DependencyDependentProviderComponent implements Dependency {
+                @Inject
+                Provider<Component> componentProvider;
+            }
         }
     }
 
