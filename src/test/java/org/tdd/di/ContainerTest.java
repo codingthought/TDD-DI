@@ -128,7 +128,7 @@ public class ContainerTest {
                 }
             }
 
-            static Stream<Arguments> ComponentWithDependencyClassProvider() {
+            static Stream<Arguments> componentWithDependencyClassProvider() {
                 return Stream.of(Arguments.of(Named.of("Constructor Inject", ConstructorInject.class)),
                         Arguments.of(Named.of("Field Inject", FieldInject.class)),
                         Arguments.of(Named.of("Method Inject", MethodInject.class)),
@@ -138,7 +138,7 @@ public class ContainerTest {
             }
 
             @ParameterizedTest(name = "supporting {0}")
-            @MethodSource("ComponentWithDependencyClassProvider")
+            @MethodSource("componentWithDependencyClassProvider")
             void should_bind_type_to_an_injectable_component(Class<? extends Component> componentClass) {
                 Dependency dependencyImpl = new Dependency() {
                 };
@@ -208,13 +208,23 @@ public class ContainerTest {
 
         @Nested
         class DependencyCheckTest {
-            @Test
-            void should_throw_Exception_when_get_dependency_not_found() {
-                containerBuilder.bind(AnotherComponent.class, ComponentWithDependency.class);
+            @ParameterizedTest
+            @MethodSource("componentMissDependencyClassProvider")
+            void should_throw_Exception_when_get_dependency_not_found(Class<? extends BindingTest.Component> componentType) {
+                containerBuilder.bind(BindingTest.Component.class, componentType);
 
                 DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> containerBuilder.build());
-                assertEquals(Component.class, exception.getDependency());
-                assertEquals(AnotherComponent.class, exception.getComponent());
+                assertEquals(BindingTest.Component.class, exception.getComponent());
+                assertEquals(BindingTest.Dependency.class, exception.getDependency());
+            }
+
+            static Stream<Arguments> componentMissDependencyClassProvider() {
+                return Stream.of(Arguments.of(Named.of("Constructor Inject", BindingTest.ConstructorInject.class)),
+                        Arguments.of(Named.of("Field Inject", BindingTest.FieldInject.class)),
+                        Arguments.of(Named.of("Method Inject", BindingTest.MethodInject.class)),
+                        Arguments.of(Named.of("Constructor Inject Provider", BindingTest.ConstructorInjectProvider.class)),
+                        Arguments.of(Named.of("Field Inject Provider", BindingTest.FieldInjectProvider.class)),
+                        Arguments.of(Named.of("Method Inject Provider", BindingTest.MethodInjectProvider.class)));
             }
 
             @Test
@@ -243,7 +253,6 @@ public class ContainerTest {
                 assertTrue(components.contains(AnotherComponent.class));
             }
         }
-
     }
 
     @Nested
