@@ -227,23 +227,46 @@ public class ContainerTest {
                         Arguments.of(Named.of("Method Inject Provider", BindingTest.MethodInjectProvider.class)));
             }
 
+            interface Component {
+            }
+            interface Dependency {
+            }
+            interface AnotherComponent {
+            }
+
+            static class ComponentDependentDependency implements Component {
+                @Inject
+                Dependency dependency;
+            }
+            static class DependencyDependentComponent implements Dependency {
+                @Inject
+                Component component;
+            }
+            static class DependencyDependentAnotherComponent implements Dependency {
+                @Inject
+                AnotherComponent anotherComponent;
+            }
+            static class AnotherComponentDependentComponent implements AnotherComponent {
+                @Inject
+                Component component;
+            }
             @Test
-            void should_return_Exception_when_bind_if_cycle_dependency() {
-                containerBuilder.bind(AnotherComponent.class, AnotherDependentComponent.class)
-                        .bind(Component.class, ComponentDependentAnotherComponent.class);
+            void should_throw_Exception_when_bind_if_cycle_dependency() {
+                containerBuilder.bind(Component.class, ComponentDependentDependency.class)
+                        .bind(Dependency.class, DependencyDependentComponent.class);
 
                 CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
                 List<Class<?>> components = exception.getComponents();
                 assertEquals(2, components.size());
-                assertTrue(components.contains(AnotherComponent.class));
                 assertTrue(components.contains(Component.class));
+                assertTrue(components.contains(Dependency.class));
             }
 
             @Test
-            void should_return_Exception_when_bind_if_transitive_cycle_dependency() {
+            void should_throw_Exception_when_bind_if_transitive_cycle_dependency() {
                 containerBuilder.bind(Component.class, ComponentDependentDependency.class)
-                        .bind(Dependency.class, ComponentDependentAnother.class)
-                        .bind(AnotherComponent.class, AnotherDependentComponent.class);
+                        .bind(Dependency.class, DependencyDependentAnotherComponent.class)
+                        .bind(AnotherComponent.class, AnotherComponentDependentComponent.class);
 
                 CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
                 List<Class<?>> components = exception.getComponents();
@@ -274,10 +297,6 @@ interface Dependency {
 
 }
 
-interface AnotherComponent {
-
-}
-
 class ComponentDependentDependency implements Component {
 
     @Inject
@@ -292,71 +311,8 @@ class ComponentDependentDependency implements Component {
     }
 }
 
-class ComponentDependentAnother implements Dependency {
-
-
-    @Inject
-    public ComponentDependentAnother(AnotherComponent dependency) {
-        this.dependency = dependency;
-    }
-
-    private final AnotherComponent dependency;
-}
-
 class ComponentNoDependency implements Component {
 
-}
-
-class ComponentWithDependency implements AnotherComponent {
-    @Inject
-    public ComponentWithDependency(Component dependency) {
-        this.dependency = dependency;
-    }
-
-    private Component dependency;
-
-    public Component getDependency() {
-        return dependency;
-    }
-}
-
-class AnotherDependentComponent implements AnotherComponent {
-    @Inject
-    public AnotherDependentComponent(Component dependency) {
-        this.dependency = dependency;
-    }
-
-    private Component dependency;
-
-    public Component getDependency() {
-        return dependency;
-    }
-}
-
-class ComponentDependentAnotherComponent implements Component {
-    @Inject
-    public ComponentDependentAnotherComponent(AnotherComponent dependency) {
-        this.dependency = dependency;
-    }
-
-    private AnotherComponent dependency;
-
-    public AnotherComponent getDependency() {
-        return dependency;
-    }
-}
-
-class ComponentDependencyString implements Component {
-    @Inject
-    public ComponentDependencyString(String dependency) {
-        this.dependency = dependency;
-    }
-
-    private String dependency;
-
-    public String getDependency() {
-        return dependency;
-    }
 }
 
 class ComponentWithMultiInjectConstructor implements Component {
