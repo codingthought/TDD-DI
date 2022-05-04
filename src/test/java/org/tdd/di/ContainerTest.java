@@ -44,7 +44,7 @@ public class ContainerTest {
             }
 
             interface Component {
-                default Dependency getDependency() {
+                default Object getDependency() {
                     return null;
                 }
             }
@@ -90,10 +90,51 @@ public class ContainerTest {
                 }
             }
 
+            static class ConstructorInjectProvider implements Component {
+                @Inject
+                public ConstructorInjectProvider(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+
+                private final Provider<Dependency> dependency;
+
+                @Override
+                public Provider<Dependency> getDependency() {
+                    return dependency;
+                }
+            }
+
+            static class FieldInjectProvider implements Component {
+                @Inject
+                Provider<Dependency> dependency;
+
+                @Override
+                public Provider<Dependency> getDependency() {
+                    return dependency;
+                }
+            }
+
+            static class MethodInjectProvider implements Component {
+                Provider<Dependency> dependency;
+
+                @Inject
+                public void setDependency(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
+
+                @Override
+                public Provider<Dependency> getDependency() {
+                    return dependency;
+                }
+            }
+
             static Stream<Arguments> ComponentWithDependencyClassProvider() {
                 return Stream.of(Arguments.of(Named.of("Constructor Inject", ConstructorInject.class)),
                         Arguments.of(Named.of("Field Inject", FieldInject.class)),
-                        Arguments.of(Named.of("Method Inject", MethodInject.class)));
+                        Arguments.of(Named.of("Method Inject", MethodInject.class)),
+                        Arguments.of(Named.of("Constructor Inject Provider", ConstructorInjectProvider.class)),
+                        Arguments.of(Named.of("Field Inject Provider", FieldInjectProvider.class)),
+                        Arguments.of(Named.of("Method Inject Provider", MethodInjectProvider.class)));
             }
 
             @ParameterizedTest(name = "supporting {0}")
