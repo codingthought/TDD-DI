@@ -1,6 +1,7 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,15 +20,18 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class InjectTest {
-
     @Mock
     private Dependency dependency;
+    @Mock
+    private Provider<Dependency> dependencyProvider;
     @Mock(lenient = true)
     private Container container;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws NoSuchFieldException {
         when(container.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
+        ParameterizedType providerType = (ParameterizedType) getClass().getDeclaredField("dependencyProvider").getGenericType();
+        when(container.get(eq(providerType))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
@@ -53,6 +58,21 @@ class InjectTest {
                 InjectComponentProvider<ComponentDependentDependency> provider = new InjectComponentProvider<>(ComponentDependentDependency.class);
 
                 assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
+            }
+
+            @Test
+            void should_support_inject_provider_dependency_via_inject_constructor() {
+                ConstructorInjectProvider instance = new InjectComponentProvider<>(ConstructorInjectProvider.class).getFrom(container);
+
+                assertSame(dependencyProvider, instance.dependency);
+            }
+
+            static class ConstructorInjectProvider {
+                Provider<Dependency> dependency;
+                @Inject
+                public ConstructorInjectProvider(Provider<Dependency> dependency) {
+                    this.dependency = dependency;
+                }
             }
         }
 
