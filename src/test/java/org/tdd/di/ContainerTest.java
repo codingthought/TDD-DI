@@ -29,135 +29,137 @@ public class ContainerTest {
 
     @Nested
     class ComponentBindTest {
+        @Nested
+        class BindingTest {
+            @Test
+            void should_bind_type_to_an_instance() {
+                Component componentImpl = new Component() {
+                };
+                containerBuilder.bind(Component.class, componentImpl);
 
-        @Test
-        void should_bind_type_to_an_instance() {
-            Component componentImpl = new Component() {
-            };
-            containerBuilder.bind(Component.class, componentImpl);
-
-            assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
-        }
-
-        interface Component {
-            default Dependency getDependency() {
-                return null;
-            }
-        }
-
-        interface Dependency {
-        }
-
-        static class ConstructorInject implements Component {
-            @Inject
-            public ConstructorInject(Dependency dependency) {
-                this.dependency = dependency;
+                assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
             }
 
-            private final Dependency dependency;
-
-            @Override
-            public Dependency getDependency() {
-                return dependency;
+            interface Component {
+                default Dependency getDependency() {
+                    return null;
+                }
             }
-        }
-        static class FieldInject implements Component {
-            @Inject
-            Dependency dependency;
 
-            @Override
-            public Dependency getDependency() {
-                return dependency;
+            interface Dependency {
             }
-        }
-        static class MethodInject implements Component {
-            Dependency dependency;
 
-            @Inject
-            public void setDependency(Dependency dependency) {
-                this.dependency = dependency;
+            static class ConstructorInject implements Component {
+                @Inject
+                public ConstructorInject(Dependency dependency) {
+                    this.dependency = dependency;
+                }
+
+                private final Dependency dependency;
+
+                @Override
+                public Dependency getDependency() {
+                    return dependency;
+                }
             }
-            @Override
-            public Dependency getDependency() {
-                return dependency;
+            static class FieldInject implements Component {
+                @Inject
+                Dependency dependency;
+
+                @Override
+                public Dependency getDependency() {
+                    return dependency;
+                }
             }
+            static class MethodInject implements Component {
+                Dependency dependency;
+
+                @Inject
+                public void setDependency(Dependency dependency) {
+                    this.dependency = dependency;
+                }
+                @Override
+                public Dependency getDependency() {
+                    return dependency;
+                }
+            }
+
+            static Stream<Arguments> ComponentWithDependencyClassProvider() {
+                return Stream.of(Arguments.of(Named.of("Constructor Inject", ConstructorInject.class)),
+                        Arguments.of(Named.of("Field Inject", FieldInject.class)),
+                        Arguments.of(Named.of("Method Inject", MethodInject.class)));
+            }
+
+            @ParameterizedTest(name = "supporting {0}")
+            @MethodSource("ComponentWithDependencyClassProvider")
+            void should_bind_type_to_an_injectable_component(Class<? extends Component> componentClass) {
+                Dependency dependency = new Dependency() {
+                };
+                containerBuilder.bind(Dependency.class, dependency).bind(Component.class, componentClass);
+
+                Optional<Component> componentOpl = containerBuilder.build().get(Component.class);
+                assertTrue(componentOpl.isPresent());
+                assertSame(dependency, componentOpl.get().getDependency());
+            }
+
+            @Test
+            void should_return_empty_when_get_if_type_not_bind() {
+                Optional<Component> component = containerBuilder.build().get(Component.class);
+                assertTrue(component.isEmpty());
+            }
+
+            @Test
+            void should_throw_exception_when_build_if_bind_abstract_or_interface() {
+                assertThrows(IllegalComponentException.class, () -> containerBuilder.bind(Component.class, AbstractComponent.class).build());
+                assertThrows(IllegalComponentException.class, () -> containerBuilder.bind(Component.class, Component.class).build());
+            }
+
+            static abstract class AbstractComponent implements Component {
+                public AbstractComponent() {
+                }
+            }
+
         }
 
-        static Stream<Arguments> ComponentWithDependencyClassProvider() {
-            return Stream.of(Arguments.of(Named.of("Constructor Inject", ConstructorInject.class)),
-                    Arguments.of(Named.of("Field Inject", FieldInject.class)),
-                    Arguments.of(Named.of("Method Inject", MethodInject.class)));
-        }
+        @Nested
+        class DependencyCheckTest {
+            @Test
+            void should_throw_Exception_when_get_dependency_not_found() {
+                containerBuilder.bind(AnotherComponent.class, ComponentWithDependency.class);
 
-        @ParameterizedTest(name = "supporting {0}")
-        @MethodSource("ComponentWithDependencyClassProvider")
-        void should_bind_type_to_an_injectable_component(Class<? extends Component> componentClass) {
-            Dependency dependency = new Dependency() {
-            };
-            containerBuilder.bind(Dependency.class, dependency).bind(Component.class, componentClass);
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> containerBuilder.build());
+                assertEquals(Component.class, exception.getDependency());
+                assertEquals(AnotherComponent.class, exception.getComponent());
+            }
 
-            Optional<Component> componentOpl = containerBuilder.build().get(Component.class);
-            assertTrue(componentOpl.isPresent());
-            assertSame(dependency, componentOpl.get().getDependency());
-        }
+            @Test
+            void should_return_Exception_when_bind_if_cycle_dependency() {
+                containerBuilder.bind(AnotherComponent.class, AnotherDependentComponent.class)
+                        .bind(Component.class, ComponentDependentAnotherComponent.class);
 
-        @Test
-        void should_return_empty_when_get_if_type_not_bind() {
-            Optional<Component> component = containerBuilder.build().get(Component.class);
-            assertTrue(component.isEmpty());
-        }
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
+                List<Class<?>> components = exception.getComponents();
+                assertEquals(2, components.size());
+                assertTrue(components.contains(AnotherComponent.class));
+                assertTrue(components.contains(Component.class));
+            }
 
-        @Test
-        void should_throw_exception_when_build_if_bind_abstract_or_interface() {
-            assertThrows(IllegalComponentException.class, () -> containerBuilder.bind(Component.class, AbstractComponent.class).build());
-            assertThrows(IllegalComponentException.class, () -> containerBuilder.bind(Component.class, Component.class).build());
-        }
+            @Test
+            void should_return_Exception_when_bind_if_transitive_cycle_dependency() {
+                containerBuilder.bind(Component.class, ComponentDependentDependency.class)
+                        .bind(Dependency.class, ComponentDependentAnother.class)
+                        .bind(AnotherComponent.class, AnotherDependentComponent.class);
 
-        static abstract class AbstractComponent implements Component {
-            public AbstractComponent() {
+                CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
+                List<Class<?>> components = exception.getComponents();
+                assertEquals(3, components.size());
+                assertTrue(components.contains(Component.class));
+                assertTrue(components.contains(Dependency.class));
+                assertTrue(components.contains(AnotherComponent.class));
             }
         }
 
     }
-
-    @Nested
-    class DependencyCheckTest {
-        @Test
-        void should_throw_Exception_when_get_dependency_not_found() {
-            containerBuilder.bind(AnotherComponent.class, ComponentWithDependency.class);
-
-            DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> containerBuilder.build());
-            assertEquals(Component.class, exception.getDependency());
-            assertEquals(AnotherComponent.class, exception.getComponent());
-        }
-
-        @Test
-        void should_return_Exception_when_bind_if_cycle_dependency() {
-            containerBuilder.bind(AnotherComponent.class, AnotherDependentComponent.class)
-                    .bind(Component.class, ComponentDependentAnotherComponent.class);
-
-            CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
-            List<Class<?>> components = exception.getComponents();
-            assertEquals(2, components.size());
-            assertTrue(components.contains(AnotherComponent.class));
-            assertTrue(components.contains(Component.class));
-        }
-
-        @Test
-        void should_return_Exception_when_bind_if_transitive_cycle_dependency() {
-            containerBuilder.bind(Component.class, ComponentDependentDependency.class)
-                    .bind(Dependency.class, ComponentDependentAnother.class)
-                    .bind(AnotherComponent.class, AnotherDependentComponent.class);
-
-            CycleDependencyNotAllowed exception = assertThrows(CycleDependencyNotAllowed.class, () -> containerBuilder.build());
-            List<Class<?>> components = exception.getComponents();
-            assertEquals(3, components.size());
-            assertTrue(components.contains(Component.class));
-            assertTrue(components.contains(Dependency.class));
-            assertTrue(components.contains(AnotherComponent.class));
-        }
-    }
-
     @Nested
     class ComponentSelectionTest {
 
