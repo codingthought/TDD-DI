@@ -30,11 +30,11 @@ public class ContainerBuilder {
 
     private void checkDependencies(Class<?> component, Stack<Class<?>> stack) {
         for (Type dependency : componentProviders.get(component).getTypeDependencies()) {
+            Class<?> clazz = dependency instanceof Class<?> ? (Class<?>) dependency :
+                    (Class<?>) ((ParameterizedType) dependency).getActualTypeArguments()[0];
+            checkExist(component, clazz);
             if (dependency instanceof Class<?>) {
-                checkExist(component, (Class<?>) dependency);
-                checkCycleDependencies(stack, (Class<?>) dependency);
-            } else {
-                checkExist(component, (Class<?>)((ParameterizedType)dependency).getActualTypeArguments()[0]);
+                checkCycleDependencies(stack, clazz);
             }
         }
     }
@@ -53,5 +53,4 @@ public class ContainerBuilder {
         checkDependencies(dependency, stack);
         stack.pop();
     }
-
 }
