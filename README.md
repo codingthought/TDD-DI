@@ -46,7 +46,7 @@
   - ~~注入方法中可声明对于 Provider 的依赖。~~
   - ~~获取 provider 未注入时应该抛出 Not Found Exception~~
   - ~~通过 provider 获取 dependencies 应该包含 provider~~
-  - 通过 provider 形成的循环依赖不会抛出异常
+  - ~~通过 provider 形成的循环依赖不会抛出异常~~
 - 自定义 Qualifier 的依赖
   - 注册组件时，可额外指定 Qualifier。
   - 注册组件时，可从类对象上提取 Qualifier。

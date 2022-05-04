@@ -46,6 +46,22 @@ class InjectTest {
                 Component component = new InjectComponentProvider<>(ComponentNoDependency.class).getFrom(container);
                 assertNotNull(component);
             }
+            static class ComponentNoDependency implements Component {
+            }
+
+            static class ComponentDependentDependency implements Component {
+
+                @Inject
+                public ComponentDependentDependency(Dependency dependency) {
+                    this.dependency = dependency;
+                }
+
+                private final Dependency dependency;
+
+                public Dependency getDependency() {
+                    return dependency;
+                }
+            }
 
             @Test
             void should_inject_dependency_via_inject_constructor() {
@@ -89,10 +105,22 @@ class InjectTest {
         class SadPathTest {
             @Test
             void should_throw_Exception_when_bind_if_multi_inject_constructor_provided() {
-                assertThrows(IllegalComponentException.class, () ->
-                        new InjectComponentProvider<>(ComponentWithMultiInjectConstructor.class));
+                assertThrows(IllegalComponentException.class, () -> new InjectComponentProvider<>(ComponentWithMultiInjectConstructor.class));
             }
 
+            static class ComponentWithMultiInjectConstructor implements Component {
+                @Inject
+                public ComponentWithMultiInjectConstructor(String name) {
+                }
+                @Inject
+                public ComponentWithMultiInjectConstructor(Integer id) {
+                }
+            }
+
+            static class ComponentWithNoInjectNorDefaultConstructor implements Component {
+                public ComponentWithNoInjectNorDefaultConstructor(String name) {
+                }
+            }
             @Test
             void should_throw_Exception_when_bind_if_no_inject_nor_default_constructor_provided() {
                 assertThrows(IllegalComponentException.class, () ->
@@ -314,4 +342,10 @@ class InjectTest {
             }
         }
     }
+}
+
+interface Component {
+}
+
+interface Dependency {
 }
