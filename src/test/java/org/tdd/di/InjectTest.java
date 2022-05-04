@@ -69,6 +69,7 @@ class InjectTest {
 
             static class ConstructorInjectProvider {
                 Provider<Dependency> dependency;
+
                 @Inject
                 public ConstructorInjectProvider(Provider<Dependency> dependency) {
                     this.dependency = dependency;
@@ -124,6 +125,18 @@ class InjectTest {
 
                 assertArrayEquals(new Class[]{Dependency.class}, provider.getDependencies().toArray());
             }
+
+            @Test
+            void should_support_inject_provider_dependency_via_inject_field() {
+                FieldInjectProvider instance = new InjectComponentProvider<>(FieldInjectProvider.class).getFrom(container);
+
+                assertSame(dependencyProvider, instance.dependency);
+            }
+
+            static class FieldInjectProvider {
+                @Inject
+                Provider<Dependency> dependency;
+            }
         }
 
         @Nested
@@ -139,6 +152,7 @@ class InjectTest {
             static class ComponentWithFinalField implements Component {
                 @Inject
                 private final Dependency dependency;
+
                 ComponentWithFinalField() {
                     dependency = null;
                 }
@@ -256,6 +270,7 @@ class InjectTest {
 
             static class MethodInjectProvider {
                 Provider<Dependency> dependency;
+
                 @Inject
                 public void setDependency(Provider<Dependency> dependency) {
                     this.dependency = dependency;
