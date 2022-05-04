@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
+import org.tdd.di.exception.UnsupportedTypeException;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -131,6 +132,18 @@ public class ContainerTest {
                 public ParameterizedType getType() {
                     return (ParameterizedType) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
                 }
+            }
+
+            @Test
+            void should_throw_exception_when_get_unsupported_container_type_as_provider() {
+
+                Component instance = new Component() {
+                };
+                Container container = containerBuilder.bind(Component.class, instance).build();
+                ParameterizedType parameterizedType = new TypeWrapper<List<Component>>() {
+                }.getType();
+
+                assertThrows(UnsupportedTypeException.class, () -> container.get(parameterizedType));
             }
 
             @Test

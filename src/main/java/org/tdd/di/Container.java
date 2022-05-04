@@ -1,6 +1,7 @@
 package org.tdd.di;
 
 import jakarta.inject.Provider;
+import org.tdd.di.exception.UnsupportedTypeException;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
@@ -18,6 +19,7 @@ public class Container {
     }
 
     public Optional<?> get(ParameterizedType parameterizedType) {
+        if (parameterizedType.getRawType() != Provider.class) throw new UnsupportedTypeException();
         Class<?> actualType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
         return Optional.of(componentProviders.get(actualType))
                 .map(provider -> (Provider<?>) () -> provider.getFrom(this));
