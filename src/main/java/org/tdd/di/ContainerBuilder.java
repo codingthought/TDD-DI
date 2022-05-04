@@ -3,6 +3,7 @@ package org.tdd.di;
 import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,11 @@ public class ContainerBuilder {
         for (Type dependency : componentProviders.get(component).getTypeDependencies()) {
             if (dependency instanceof Class<?>) {
                 checkDependency(component, stack, (Class<?>) dependency);
+            } else {
+                Class<?> type = (Class<?>)((ParameterizedType)dependency).getActualTypeArguments()[0];
+                if (!componentProviders.containsKey(type)) {
+                    throw new DependencyNotFoundException(component, type);
+                }
             }
         }
     }
