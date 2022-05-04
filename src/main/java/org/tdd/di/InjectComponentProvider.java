@@ -105,6 +105,9 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     }
 
     private Object toDependency(Field field, Container container) {
-        return container.get(field.getType()).get();
+        if (field.getGenericType() instanceof ParameterizedType) {
+            return container.get((ParameterizedType) field.getGenericType()).get();
+        }
+        return container.get((Class<?>) field.getGenericType()).get();
     }
 }
