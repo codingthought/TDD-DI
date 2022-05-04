@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class InjectComponentProvider<Type> implements ComponentProvider<Type> {
@@ -67,30 +68,31 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         List<Field> fields = new ArrayList<>();
         Class<?> current = component;
         while (current != Object.class) {
-            for (Field field : current.getDeclaredFields()) {
-                if (field.isAnnotationPresent(Inject.class)) {
-                    if (Modifier.isFinal(field.getModifiers()))
-                        throw new FinalFieldInjectException(field.getName(), current);
-                    fields.add(field);
-                }
+            for (Field field : injectable(current.getDeclaredFields())) {
+                validate(current, field);
+                fields.add(field);
             }
             current = current.getSuperclass();
         }
         return fields;
     }
 
+    private static void validate(Class<?> current, Field field) {
+        if (Modifier.isFinal(field.getModifiers()))
+            throw new FinalFieldInjectException(field.getName(), current);
+    }
+
     private static List<Method> getMethods(Class<?> component) {
-        List<Method> methods = new ArrayList<>();
-        for (Method method : component.getMethods()) {
-            if (method.isAnnotationPresent(Inject.class)) {
-                if (method.getTypeParameters().length > 0) {
-                    throw new IllegalComponentException();
-                }
-                methods.add(method);
-            }
-        }
+        List<Method> methods = injectable(component.getMethods()).stream()
+                .peek(InjectComponentProvider::validate).collect(Collectors.toList());
         Collections.reverse(methods);
         return methods;
+    }
+
+    private static void validate(Method method) {
+        if (method.getTypeParameters().length > 0) {
+            throw new IllegalComponentException();
+        }
     }
 
     private static Object[] toDependencies(Executable executable, Container container) {
