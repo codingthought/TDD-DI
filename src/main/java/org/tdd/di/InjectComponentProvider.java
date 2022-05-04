@@ -5,7 +5,10 @@ import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 class InjectComponentProvider<Type> implements ComponentProvider<Type> {
@@ -17,7 +20,7 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         if (Modifier.isAbstract(component.getModifiers())) {
             throw new IllegalComponentException();
         }
-        constructor = getConstructor(component);
+        constructor = (Constructor<Type>) getConstructor(component);
         fields = getFields(component);
         methods = getMethods(component);
     }
@@ -27,7 +30,7 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         try {
             Type instance = constructor.newInstance(toDependencies(constructor, container));
             for (Field field : fields)
-                field.set(instance, container.get(field.getType()).get());
+                field.set(instance, toDependency(field, container));
             for (Method method : methods)
                 method.invoke(instance, toDependencies(method, container));
             return instance;
@@ -42,22 +45,22 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
                 methods.stream().map(Method::getParameterTypes).flatMap(Arrays::stream)).toList();
     }
 
-    private static <Type> Constructor<Type> getConstructor(Class<? extends Type> component) {
-        Constructor<?>[] declaredConstructors = component.getDeclaredConstructors();
-        List<Constructor<?>> filteredConstructors = Arrays.stream(declaredConstructors)
-                .filter(c -> Objects.nonNull(c.getAnnotation(Inject.class))).toList();
-        if (filteredConstructors.size() > 1) {
+    private static Constructor<?> getConstructor(Class<?> component) {
+        List<Constructor<?>> injectableConstructors = injectable(component.getDeclaredConstructors());
+        if (injectableConstructors.size() > 1) throw new IllegalComponentException();
+        return injectableConstructors.stream().findFirst().orElseGet(() -> getDefaultConstructor(component));
+    }
+
+    private static Constructor<?> getDefaultConstructor(Class<?> component) {
+        try {
+            return component.getDeclaredConstructor();
+        } catch (NoSuchMethodException e) {
             throw new IllegalComponentException();
         }
-        if (filteredConstructors.size() == 0 &&
-                Arrays.stream(declaredConstructors).allMatch(d -> d.getParameterTypes().length > 0)) {
-            throw new IllegalComponentException();
-        }
-        if (filteredConstructors.size() == 1) {
-            return (Constructor<Type>) filteredConstructors.get(0);
-        } else {
-            return (Constructor<Type>) declaredConstructors[0];
-        }
+    }
+
+    private static <T extends AnnotatedElement> List<T> injectable(T[] elements) {
+        return Arrays.stream(elements).filter(e -> e.isAnnotationPresent(Inject.class)).toList();
     }
 
     private static List<Field> getFields(Class<?> component) {
@@ -92,5 +95,9 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
 
     private static Object[] toDependencies(Executable executable, Container container) {
         return Arrays.stream(executable.getParameterTypes()).map(p -> container.get(p).get()).toArray();
+    }
+
+    private Object toDependency(Field field, Container container) {
+        return container.get(field.getType()).get();
     }
 }
