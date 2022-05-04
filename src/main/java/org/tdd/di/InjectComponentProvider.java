@@ -12,24 +12,24 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class InjectComponentProvider<Type> implements ComponentProvider<Type> {
-    private final Constructor<Type> constructor;
+class InjectComponentProvider<T> implements ComponentProvider<T> {
+    private final Constructor<T> constructor;
     private final List<Field> fields;
     private final List<Method> methods;
 
-    InjectComponentProvider(Class<? extends Type> component) {
+    InjectComponentProvider(Class<? extends T> component) {
         if (Modifier.isAbstract(component.getModifiers())) {
             throw new IllegalComponentException();
         }
-        constructor = (Constructor<Type>) getConstructor(component);
+        constructor = (Constructor<T>) getConstructor(component);
         fields = getFields(component);
         methods = getMethods(component);
     }
 
     @Override
-    public Type getFrom(Container container) {
+    public T getFrom(Container container) {
         try {
-            Type instance = constructor.newInstance(toDependencies(constructor, container));
+            T instance = constructor.newInstance(toDependencies(constructor, container));
             for (Field field : fields)
                 field.set(instance, toDependency(field, container));
             for (Method method : methods)
@@ -44,6 +44,11 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     public List<Class<?>> getDependencies() {
         return Stream.concat(Stream.concat(fields.stream().map(Field::getType), Arrays.stream(constructor.getParameterTypes())),
                 methods.stream().map(Method::getParameterTypes).flatMap(Arrays::stream)).toList();
+    }
+
+    @Override
+    public List<Type> getTypeDependencies() {
+        return Arrays.stream(constructor.getParameters()).map(Parameter::getParameterizedType).toList();
     }
 
     private static Constructor<?> getConstructor(Class<?> component) {
