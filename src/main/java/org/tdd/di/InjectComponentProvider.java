@@ -25,13 +25,11 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
     @Override
     public Type getFrom(Container container) {
         try {
-            Type instance = constructor.newInstance(Arrays.stream(constructor.getParameterTypes()).map(p -> container.get(p).get()).toArray());
-            for (Field field : fields) {
+            Type instance = constructor.newInstance(toDependencies(constructor, container));
+            for (Field field : fields)
                 field.set(instance, container.get(field.getType()).get());
-            }
-            for (Method method : methods) {
-                method.invoke(instance, Arrays.stream(method.getParameterTypes()).map(p -> container.get(p).get()).toArray());
-            }
+            for (Method method : methods)
+                method.invoke(instance, toDependencies(method, container));
             return instance;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
@@ -90,5 +88,9 @@ class InjectComponentProvider<Type> implements ComponentProvider<Type> {
         }
         Collections.reverse(methods);
         return methods;
+    }
+
+    private static Object[] toDependencies(Executable executable, Container container) {
+        return Arrays.stream(executable.getParameterTypes()).map(p -> container.get(p).get()).toArray();
     }
 }
