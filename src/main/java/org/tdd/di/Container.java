@@ -15,11 +15,11 @@ public class Container {
         this.componentProviders = componentProviders;
     }
 
-    public <T> Optional<T> get(Class<T> type) {
+    private  <T> Optional<T> getBy(Class<T> type) {
         return Optional.ofNullable(componentProviders.get(type)).map(provider -> (T) provider.getFrom(this));
     }
 
-    public Optional<Provider<?>> get(ParameterizedType parameterizedType) {
+    private Optional<Provider<?>> getBy(ParameterizedType parameterizedType) {
         if (parameterizedType.getRawType() != Provider.class)
             throw new UnsupportedTypeException(parameterizedType.getRawType());
         Class<?> actualType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
@@ -27,10 +27,10 @@ public class Container {
                 .map(provider -> () -> provider.getFrom(this));
     }
 
-    public Optional getType(Type type) {
+    public Optional get(Type type) {
         if (type instanceof ParameterizedType parameterizedType) {
-            return get(parameterizedType);
+            return getBy(parameterizedType);
         }
-        return get((Class) type);
+        return getBy((Class) type);
     }
 }

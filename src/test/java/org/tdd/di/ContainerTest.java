@@ -40,7 +40,7 @@ public class ContainerTest {
                 };
                 containerBuilder.bind(Component.class, componentImpl);
 
-                assertSame(componentImpl, containerBuilder.build().getType(Component.class).orElse(null));
+                assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
             }
 
             interface Component {
@@ -144,7 +144,7 @@ public class ContainerTest {
                 };
                 containerBuilder.bind(Dependency.class, dependencyImpl).bind(Component.class, componentClass);
 
-                Optional<Component> componentOpl = containerBuilder.build().getType(Component.class);
+                Optional<Component> componentOpl = containerBuilder.build().get(Component.class);
                 assertTrue(componentOpl.isPresent());
 
                 Object dependency = componentOpl.get().getDependency();
@@ -157,13 +157,13 @@ public class ContainerTest {
 
             @Test
             void should_return_empty_when_get_if_type_not_bind() {
-                Optional<?> component = containerBuilder.build().getType(Component.class);
+                Optional<?> component = containerBuilder.build().get(Component.class);
                 assertTrue(component.isEmpty());
             }
 
             @Test
             void should_return_empty_when_get_if_provider_type_not_bind() throws NoSuchFieldException {
-                Optional provider = containerBuilder.build().getType(
+                Optional provider = containerBuilder.build().get(
                         FieldInjectProvider.class.getDeclaredField("dependency").getGenericType());
 
                 assertTrue(provider.isEmpty());
@@ -177,7 +177,7 @@ public class ContainerTest {
                 ParameterizedType parameterizedType = new TypeWrapper<Provider<Component>>() {
                 }.getType();
 
-                Optional<?> provider = container.getType(parameterizedType);
+                Optional<?> provider = container.get(parameterizedType);
 
                 assertTrue(provider.isPresent());
                 assertSame(instance, ((Provider<Component>) provider.get()).get());
@@ -198,7 +198,7 @@ public class ContainerTest {
                 ParameterizedType parameterizedType = new TypeWrapper<List<Component>>() {
                 }.getType();
 
-                assertThrows(UnsupportedTypeException.class, () -> container.getType(parameterizedType));
+                assertThrows(UnsupportedTypeException.class, () -> container.get(parameterizedType));
             }
 
             @Test
@@ -294,8 +294,8 @@ public class ContainerTest {
             void should_not_throw_Exception_when_bind_if_cycle_dependency_via_provider() {
                 Container container = containerBuilder.bind(Component.class, ComponentDependentDependency.class)
                         .bind(Dependency.class, DependencyDependentProviderComponent.class).build();
-                Optional<?> component = container.getType(Component.class);
-                Optional<?> dependency = container.getType(Dependency.class);
+                Optional<?> component = container.get(Component.class);
+                Optional<?> dependency = container.get(Dependency.class);
 
                 assertTrue(component.isPresent());
                 assertTrue(dependency.isPresent());
