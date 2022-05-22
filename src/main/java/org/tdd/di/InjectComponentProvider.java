@@ -49,13 +49,13 @@ class InjectComponentProvider<T> implements ComponentProvider<T> {
                 .map(Ref::of).collect(Collectors.toList());
     }
 
-    private static Constructor<?> getConstructor(Class<?> component) {
+    private static <T> Constructor<?> getConstructor(Class<T> component) {
         List<Constructor<?>> injectableConstructors = injectable(component.getDeclaredConstructors());
         if (injectableConstructors.size() > 1) throw new IllegalComponentException();
         return injectableConstructors.stream().findFirst().orElseGet(() -> getDefaultConstructor(component));
     }
 
-    private static Constructor<?> getDefaultConstructor(Class<?> component) {
+    private static <T> Constructor<T> getDefaultConstructor(Class<T> component) {
         try {
             return component.getDeclaredConstructor();
         } catch (NoSuchMethodException e) {
