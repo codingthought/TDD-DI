@@ -9,12 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.tdd.di.ContainerBuilder.Ref;
 import org.tdd.di.exception.CycleDependencyNotAllowed;
 import org.tdd.di.exception.DependencyNotFoundException;
 import org.tdd.di.exception.IllegalComponentException;
 import org.tdd.di.exception.UnsupportedTypeException;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -40,7 +40,7 @@ public class ContainerTest {
                 };
                 containerBuilder.bind(Component.class, componentImpl);
 
-                assertSame(componentImpl, containerBuilder.build().get(ContainerBuilder.Ref.of(Component.class)).orElse(null));
+                assertSame(componentImpl, containerBuilder.build().get(Ref.of(Component.class)).orElse(null));
             }
 
             interface Component {
@@ -144,7 +144,7 @@ public class ContainerTest {
                 };
                 containerBuilder.bind(Dependency.class, dependencyImpl).bind(Component.class, componentClass);
 
-                Optional<Component> componentOpl = containerBuilder.build().get(ContainerBuilder.Ref.of(Component.class));
+                Optional<Component> componentOpl = containerBuilder.build().get(Ref.of(Component.class));
                 assertTrue(componentOpl.isPresent());
 
                 Object dependency = componentOpl.get().getDependency();
@@ -157,13 +157,13 @@ public class ContainerTest {
 
             @Test
             void should_return_empty_when_get_if_type_not_bind() {
-                Optional<?> component = containerBuilder.build().get(ContainerBuilder.Ref.of(Component.class));
+                Optional<?> component = containerBuilder.build().get(Ref.of(Component.class));
                 assertTrue(component.isEmpty());
             }
 
             @Test
             void should_return_empty_when_get_if_provider_type_not_bind() throws NoSuchFieldException {
-                Optional provider = containerBuilder.build().get(ContainerBuilder.Ref.of(FieldInjectProvider.class.getDeclaredField("dependency").getGenericType()));
+                Optional provider = containerBuilder.build().get(Ref.of(FieldInjectProvider.class.getDeclaredField("dependency").getGenericType()));
 
                 assertTrue(provider.isEmpty());
             }
@@ -173,19 +173,11 @@ public class ContainerTest {
                 Component instance = new Component() {
                 };
                 Container container = containerBuilder.bind(Component.class, instance).build();
-                ParameterizedType parameterizedType = new TypeWrapper<Provider<Component>>() {
-                }.getType();
 
-                Optional<?> provider = container.get(ContainerBuilder.Ref.of(parameterizedType));
+                Optional<?> provider = container.get(new Ref<Provider<Component>>() {});
 
                 assertTrue(provider.isPresent());
                 assertSame(instance, ((Provider<Component>) provider.get()).get());
-            }
-
-            abstract class TypeWrapper<T> {
-                public ParameterizedType getType() {
-                    return (ParameterizedType) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-                }
             }
 
             @Test
@@ -194,10 +186,8 @@ public class ContainerTest {
                 Component instance = new Component() {
                 };
                 Container container = containerBuilder.bind(Component.class, instance).build();
-                ParameterizedType parameterizedType = new TypeWrapper<List<Component>>() {
-                }.getType();
 
-                assertThrows(UnsupportedTypeException.class, () -> container.get(ContainerBuilder.Ref.of(parameterizedType)));
+                assertThrows(UnsupportedTypeException.class, () -> container.get(new Ref<List<Component>>() {}));
             }
 
             @Test
@@ -293,8 +283,8 @@ public class ContainerTest {
             void should_not_throw_Exception_when_bind_if_cycle_dependency_via_provider() {
                 Container container = containerBuilder.bind(Component.class, ComponentDependentDependency.class)
                         .bind(Dependency.class, DependencyDependentProviderComponent.class).build();
-                Optional<?> component = container.get(ContainerBuilder.Ref.of(Component.class));
-                Optional<?> dependency = container.get(ContainerBuilder.Ref.of(Dependency.class));
+                Optional<?> component = container.get(Ref.of(Component.class));
+                Optional<?> dependency = container.get(Ref.of(Dependency.class));
 
                 assertTrue(component.isPresent());
                 assertTrue(dependency.isPresent());

@@ -29,25 +29,34 @@ public class ContainerBuilder {
         return new Container(componentProviders);
     }
 
-    static class Ref {
+    static class Ref<T> {
         private ParameterizedType containerType;
-        private final Class<?> componentType;
+        private Class<T> componentType;
 
-        public static Ref of(Type type) {
+        public static Ref<?> of(Type type) {
+            return new Ref<>(type);
+        }
+
+        private Ref(Class<T> componentType) {
+            init(componentType);
+        }
+
+        private Ref(Type containerType) {
+            init(containerType);
+        }
+
+        protected Ref() {
+            Type type = ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+            init(type);
+        }
+
+        private void init(Type type) {
             if (type instanceof ParameterizedType parameterizedType) {
-                return new Ref(parameterizedType);
+                this.containerType = parameterizedType;
+                this.componentType = (Class<T>) parameterizedType.getActualTypeArguments()[0];
             } else {
-                return new Ref((Class<?>) type);
+                this.componentType = (Class<T>) type;
             }
-        }
-
-        private Ref(Class<?> componentType) {
-            this.componentType = componentType;
-        }
-
-        private Ref(ParameterizedType containerType) {
-            this.componentType = (Class<?>) containerType.getActualTypeArguments()[0];
-            this.containerType = containerType;
         }
 
         public ParameterizedType getContainerType() {
