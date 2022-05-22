@@ -15,6 +15,7 @@ import org.tdd.di.exception.IllegalComponentException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
@@ -76,14 +77,14 @@ class InjectTest {
             void should_include_constructor_dependency_when_get_dependencies() {
                 InjectComponentProvider<ComponentDependentDependency> provider = new InjectComponentProvider<>(ComponentDependentDependency.class);
 
-                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencies().toArray());
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getRefDependencies().stream().map(Ref::getType).collect(Collectors.toList()).toArray());
             }
 
             @Test
             void should_include_provider_type_dependency_when_get_type_dependencies() {
                 InjectComponentProvider<ConstructorInjectProvider> provider = new InjectComponentProvider<>(ConstructorInjectProvider.class);
 
-                assertArrayEquals(new Type[]{providerType}, provider.getDependencies().toArray());
+                assertArrayEquals(new Type[]{providerType}, provider.getRefDependencies().stream().map(Ref::getType).collect(Collectors.toList()).toArray());
             }
 
             @Test
@@ -160,14 +161,14 @@ class InjectTest {
             void should_return_filed_dependency_when_get_dependencies() {
                 InjectComponentProvider<ComponentInjectDependencyWithField> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithField.class);
 
-                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencies().toArray());
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getRefDependencies().stream().map(Ref::getType).collect(Collectors.toList()).toArray());
             }
 
             @Test
             void should_include_provider_type_dependency_when_get_type_dependencies() {
                 InjectComponentProvider<FieldInjectProvider> provider = new InjectComponentProvider<>(FieldInjectProvider.class);
 
-                assertArrayEquals(new Type[]{providerType}, provider.getDependencies().toArray());
+                assertArrayEquals(new Type[]{providerType}, provider.getRefDependencies().stream().map(Ref::getType).collect(Collectors.toList()).toArray());
             }
 
             @Test
@@ -302,14 +303,14 @@ class InjectTest {
             void should_return_method_inject_dependencies_when_get_dependencies() {
                 InjectComponentProvider<ComponentInjectDependencyWithMethod> provider = new InjectComponentProvider<>(ComponentInjectDependencyWithMethod.class);
 
-                assertArrayEquals(new Type[]{Dependency.class}, provider.getDependencies().toArray());
+                assertArrayEquals(new Type[]{Dependency.class}, provider.getRefDependencies().stream().map(Ref::getType).collect(Collectors.toList()).toArray());
             }
 
             @Test
             void should_include_provider_type_dependency_when_get_type_dependencies() {
                 InjectComponentProvider<MethodInjectProvider> provider = new InjectComponentProvider<>(MethodInjectProvider.class);
 
-                assertArrayEquals(new Type[]{providerType}, provider.getDependencies().toArray());
+                assertArrayEquals(new Type[]{providerType}, provider.getRefDependencies().stream().map(Ref::getType).collect(Collectors.toList()).toArray());
             }
 
             @Test

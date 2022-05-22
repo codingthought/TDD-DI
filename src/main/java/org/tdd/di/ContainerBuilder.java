@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class ContainerBuilder {
 
@@ -90,7 +91,7 @@ public class ContainerBuilder {
     }
 
     private void checkDependencies(Class<?> component, Stack<Class<?>> stack) {
-        for (Type dependency : componentProviders.get(component).getDependencies()) {
+        for (Type dependency : componentProviders.get(component).getRefDependencies().stream().map(Ref::getType).collect(Collectors.toList())) {
             Ref ref = Ref.of(dependency);
             checkExist(component, ref.getComponentType());
             if (!ref.isContainer()) {
