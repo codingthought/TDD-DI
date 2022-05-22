@@ -15,12 +15,13 @@ public class Container {
     }
 
     public <T> Optional<T> get(Ref<T> ref) {
+        Optional<? extends ComponentProvider<?>> providerOptional = Optional.ofNullable(componentProviders.get(ref.getComponent()));
         if (ref.isContainer()) {
             if (ref.getContainer() != Provider.class)
                 throw new UnsupportedTypeException(ref.getContainer());
-            return (Optional<T>) Optional.ofNullable(componentProviders.get(ref.getComponent()))
-                    .<Provider<?>>map(provider -> () -> (T) provider.getFrom(this));
+            return providerOptional.map(provider -> (T) (Provider<?>) () -> provider.getFrom(this));
         }
-        return Optional.ofNullable(componentProviders.get(ref.getComponent())).map(provider -> (T) provider.getFrom(this));
+        return providerOptional.map(provider -> (T) provider.getFrom(this));
     }
+
 }
