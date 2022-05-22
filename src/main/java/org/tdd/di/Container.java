@@ -4,7 +4,6 @@ import jakarta.inject.Provider;
 import org.tdd.di.ContainerBuilder.Ref;
 import org.tdd.di.exception.UnsupportedTypeException;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,22 +14,13 @@ public class Container {
         this.componentProviders = componentProviders;
     }
 
-    private  <T> Optional<T> getBy(Class<T> type) {
-        return Optional.ofNullable(componentProviders.get(type)).map(provider -> (T) provider.getFrom(this));
-    }
-
-    private Optional<Provider<?>> getBy(ParameterizedType parameterizedType) {
-        if (parameterizedType.getRawType() != Provider.class)
-            throw new UnsupportedTypeException(parameterizedType.getRawType());
-        Class<?> actualType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-        return Optional.ofNullable(componentProviders.get(actualType))
-                .map(provider -> () -> provider.getFrom(this));
-    }
-
     public <T> Optional<T> get(Ref<T> ref) {
         if (ref.isContainer()) {
-            return (Optional<T>) getBy(ref.getContainerType());
+            if (ref.getContainerType().getRawType() != Provider.class)
+                throw new UnsupportedTypeException(ref.getContainerType().getRawType());
+            return (Optional<T>) Optional.ofNullable(componentProviders.get(ref.getComponentType()))
+                    .<Provider<?>>map(provider -> () -> (T) provider.getFrom(this));
         }
-        return getBy(ref.getComponentType());
+        return Optional.ofNullable(componentProviders.get(ref.getComponentType())).map(provider -> (T) provider.getFrom(this));
     }
 }
