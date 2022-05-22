@@ -7,6 +7,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
 
 public class ContainerBuilder {
@@ -59,6 +60,19 @@ public class ContainerBuilder {
 
         public boolean isContainer() {
             return containerType != null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Ref ref = (Ref) o;
+            return Objects.equals(containerType, ref.containerType) && componentType.equals(ref.componentType);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(containerType, componentType);
         }
     }
 

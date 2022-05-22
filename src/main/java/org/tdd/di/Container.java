@@ -1,10 +1,10 @@
 package org.tdd.di;
 
 import jakarta.inject.Provider;
+import org.tdd.di.ContainerBuilder.Ref;
 import org.tdd.di.exception.UnsupportedTypeException;
 
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,11 +27,7 @@ public class Container {
                 .map(provider -> () -> provider.getFrom(this));
     }
 
-    public Optional get(Type type) {
-        return get(ContainerBuilder.Ref.of(type));
-    }
-
-    public Optional get(ContainerBuilder.Ref ref) {
+    public Optional get(Ref ref) {
         if (ref.isContainer()) {
             return getBy(ref.getContainerType());
         }

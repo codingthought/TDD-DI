@@ -1,6 +1,7 @@
 package org.tdd.di;
 
 import jakarta.inject.Inject;
+import org.tdd.di.ContainerBuilder.Ref;
 import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
@@ -96,11 +97,11 @@ class InjectComponentProvider<T> implements ComponentProvider<T> {
     private static Object[] toDependencies(Executable executable, Container container) {
         return Arrays.stream(executable.getParameters())
                 .map(Parameter::getParameterizedType)
-                .map(container::get)
+                .map(type -> container.get(Ref.of(type)))
                 .map(Optional::get).toArray();
     }
 
     private Object toDependency(Field field, Container container) {
-        return container.get(field.getGenericType()).get();
+        return container.get(Ref.of(field.getGenericType())).get();
     }
 }

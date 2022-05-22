@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.tdd.di.ContainerBuilder.Ref;
 import org.tdd.di.exception.FinalFieldInjectException;
 import org.tdd.di.exception.IllegalComponentException;
 
@@ -31,9 +32,9 @@ class InjectTest {
 
     @BeforeEach
     public void setup() throws NoSuchFieldException {
-        when(container.get(eq(Dependency.class))).thenReturn(Optional.of(dependency));
+        when(container.get(eq(Ref.of(Dependency.class)))).thenReturn(Optional.of(dependency));
         providerType = (ParameterizedType) getClass().getDeclaredField("dependencyProvider").getGenericType();
-        when(container.get(eq(providerType))).thenReturn(Optional.of(dependencyProvider));
+        when(container.get(eq(Ref.of(providerType)))).thenReturn(Optional.of(dependencyProvider));
     }
 
     @Nested
