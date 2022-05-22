@@ -16,11 +16,11 @@ public class Container {
 
     public <T> Optional<T> get(Ref<T> ref) {
         if (ref.isContainer()) {
-            if (ref.getContainerType().getRawType() != Provider.class)
-                throw new UnsupportedTypeException(ref.getContainerType().getRawType());
-            return (Optional<T>) Optional.ofNullable(componentProviders.get(ref.getComponentType()))
+            if (ref.getContainer() != Provider.class)
+                throw new UnsupportedTypeException(ref.getContainer());
+            return (Optional<T>) Optional.ofNullable(componentProviders.get(ref.getComponent()))
                     .<Provider<?>>map(provider -> () -> (T) provider.getFrom(this));
         }
-        return Optional.ofNullable(componentProviders.get(ref.getComponentType())).map(provider -> (T) provider.getFrom(this));
+        return Optional.ofNullable(componentProviders.get(ref.getComponent())).map(provider -> (T) provider.getFrom(this));
     }
 }

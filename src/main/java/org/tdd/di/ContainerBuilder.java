@@ -30,8 +30,8 @@ public class ContainerBuilder {
     }
 
     static class Ref<T> {
-        private ParameterizedType containerType;
-        private Class<T> componentType;
+        private Type container;
+        private Class<T> component;
 
         public static <T> Ref<T> of(Type type) {
             return new Ref<>(type);
@@ -56,23 +56,23 @@ public class ContainerBuilder {
 
         private void init(Type type) {
             if (type instanceof ParameterizedType parameterizedType) {
-                this.containerType = parameterizedType;
-                this.componentType = (Class<T>) parameterizedType.getActualTypeArguments()[0];
+                this.container = parameterizedType.getRawType();
+                this.component = (Class<T>) parameterizedType.getActualTypeArguments()[0];
             } else {
-                this.componentType = (Class<T>) type;
+                this.component = (Class<T>) type;
             }
         }
 
-        public ParameterizedType getContainerType() {
-            return containerType;
+        public Type getContainer() {
+            return container;
         }
 
-        public Class<T> getComponentType() {
-            return componentType;
+        public Class<T> getComponent() {
+            return component;
         }
 
         public boolean isContainer() {
-            return containerType != null;
+            return container != null;
         }
 
         @Override
@@ -80,20 +80,20 @@ public class ContainerBuilder {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Ref<?> ref = (Ref<?>) o;
-            return Objects.equals(containerType, ref.containerType) && componentType.equals(ref.componentType);
+            return Objects.equals(container, ref.container) && component.equals(ref.component);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(containerType, componentType);
+            return Objects.hash(container, component);
         }
     }
 
     private void checkDependencies(Class<?> component, Stack<Class<?>> stack) {
         for (Ref<?> dependency : componentProviders.get(component).getDependencies()) {
-            checkExist(component, dependency.getComponentType());
+            checkExist(component, dependency.getComponent());
             if (!dependency.isContainer()) {
-                checkCycleDependencies(stack, dependency.getComponentType());
+                checkCycleDependencies(stack, dependency.getComponent());
             }
         }
     }
