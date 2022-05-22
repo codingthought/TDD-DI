@@ -30,13 +30,21 @@ public class ContainerBuilder {
 
     private void checkDependencies(Class<?> component, Stack<Class<?>> stack) {
         for (Type dependency : componentProviders.get(component).getTypeDependencies()) {
-            Class<?> clazz = dependency instanceof Class<?> ? (Class<?>) dependency :
-                    (Class<?>) ((ParameterizedType) dependency).getActualTypeArguments()[0];
+            Class<?> clazz = getComponentType(dependency);
             checkExist(component, clazz);
-            if (dependency instanceof Class<?>) {
+            if (isContainer(dependency)) {
                 checkCycleDependencies(stack, clazz);
             }
         }
+    }
+
+    private boolean isContainer(Type dependency) {
+        return dependency instanceof Class<?>;
+    }
+
+    private Class<?> getComponentType(Type dependency) {
+        return isContainer(dependency) ? (Class<?>) dependency :
+                (Class<?>) ((ParameterizedType) dependency).getActualTypeArguments()[0];
     }
 
     private void checkExist(Class<?> component, Class<?> dependency) {
