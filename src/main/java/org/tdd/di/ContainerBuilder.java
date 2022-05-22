@@ -34,7 +34,7 @@ public class ContainerBuilder {
 
         public static Ref of(Type type) {
             if (type instanceof ParameterizedType parameterizedType) {
-                return new Ref(parameterizedType, (Class<?>) parameterizedType.getActualTypeArguments()[0]);
+                return new Ref(parameterizedType);
             } else {
                 return new Ref((Class<?>) type);
             }
@@ -44,8 +44,8 @@ public class ContainerBuilder {
             this.componentType = componentType;
         }
 
-        private Ref(ParameterizedType containerType, Class<?> componentType) {
-            this.componentType = componentType;
+        private Ref(ParameterizedType containerType) {
+            this.componentType = (Class<?>) containerType.getActualTypeArguments()[0];
             this.containerType = containerType;
         }
 
