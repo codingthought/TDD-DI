@@ -38,13 +38,7 @@ class InjectComponentProvider<T> implements ComponentProvider<T> {
     }
 
     @Override
-    public List<Class<?>> getDependencies() {
-        return Stream.concat(Stream.concat(fields.stream().map(Field::getType), Arrays.stream(constructor.getParameterTypes())),
-                methods.stream().map(Method::getParameterTypes).flatMap(Arrays::stream)).toList();
-    }
-
-    @Override
-    public List<Type> getTypeDependencies() {
+    public List<Type> getDependencies() {
         return Stream.concat(Stream.concat(fields.stream().map(Field::getGenericType),
                         Arrays.stream(constructor.getParameters()).map(Parameter::getParameterizedType)),
                 methods.stream().map(Method::getParameters).flatMap(Arrays::stream).map(Parameter::getParameterizedType)).toList();

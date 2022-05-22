@@ -6,11 +6,7 @@ import java.util.List;
 public interface ComponentProvider<T> {
     T getFrom(Container container);
 
-    default List<Class<?>> getDependencies() {
-        return List.of();
-    }
-
-    default List<Type> getTypeDependencies() {
+    default List<Type> getDependencies() {
         return List.of();
     }
 }

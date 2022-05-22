@@ -29,7 +29,7 @@ public class ContainerBuilder {
     }
 
     private void checkDependencies(Class<?> component, Stack<Class<?>> stack) {
-        for (Type dependency : componentProviders.get(component).getTypeDependencies()) {
+        for (Type dependency : componentProviders.get(component).getDependencies()) {
             Class<?> clazz = getComponentType(dependency);
             checkExist(component, clazz);
             if (isContainer(dependency)) {
