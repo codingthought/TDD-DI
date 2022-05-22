@@ -28,9 +28,13 @@ public class Container {
     }
 
     public Optional get(Type type) {
-        if (type instanceof ParameterizedType parameterizedType) {
-            return getBy(parameterizedType);
+        return get(ContainerBuilder.Ref.of(type));
+    }
+
+    public Optional get(ContainerBuilder.Ref ref) {
+        if (ref.isContainer()) {
+            return getBy(ref.getContainerType());
         }
-        return getBy((Class) type);
+        return getBy(ref.getComponentType());
     }
 }

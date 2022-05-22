@@ -30,7 +30,7 @@ public class ContainerBuilder {
 
     static class Ref {
         private ParameterizedType containerType;
-        private Class<?> componentType;
+        private final Class<?> componentType;
 
         public static Ref of(Type type) {
             if (type instanceof ParameterizedType parameterizedType) {
@@ -44,7 +44,7 @@ public class ContainerBuilder {
             this.componentType = componentType;
         }
 
-        private Ref(ParameterizedType containerType,Class<?> componentType) {
+        private Ref(ParameterizedType containerType, Class<?> componentType) {
             this.componentType = componentType;
             this.containerType = containerType;
         }
@@ -61,6 +61,7 @@ public class ContainerBuilder {
             return containerType != null;
         }
     }
+
     private void checkDependencies(Class<?> component, Stack<Class<?>> stack) {
         for (Type dependency : componentProviders.get(component).getDependencies()) {
             Ref ref = Ref.of(dependency);
