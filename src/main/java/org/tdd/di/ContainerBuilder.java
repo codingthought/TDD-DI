@@ -71,10 +71,6 @@ public class ContainerBuilder {
             return containerType != null;
         }
 
-        public Type getType() {
-            return isContainer() ? containerType : componentType;
-        }
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
