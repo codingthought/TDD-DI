@@ -7,7 +7,7 @@ import java.util.List;
 public interface ComponentProvider<T> {
     T getFrom(Container container);
 
-    default List<Ref<?>> getRefDependencies() {
+    default List<Ref<?>> getDependencies() {
         return List.of();
     }
 }
