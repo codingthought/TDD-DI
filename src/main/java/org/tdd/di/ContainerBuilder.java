@@ -28,23 +28,47 @@ public class ContainerBuilder {
         return new Container(componentProviders);
     }
 
+    static class Ref {
+        private ParameterizedType containerType;
+        private Class<?> componentType;
+
+        public static Ref of(Type type) {
+            if (type instanceof ParameterizedType parameterizedType) {
+                return new Ref(parameterizedType, (Class<?>) parameterizedType.getActualTypeArguments()[0]);
+            } else {
+                return new Ref((Class<?>) type);
+            }
+        }
+
+        private Ref(Class<?> componentType) {
+            this.componentType = componentType;
+        }
+
+        private Ref(ParameterizedType containerType,Class<?> componentType) {
+            this.componentType = componentType;
+            this.containerType = containerType;
+        }
+
+        public ParameterizedType getContainerType() {
+            return containerType;
+        }
+
+        public Class<?> getComponentType() {
+            return componentType;
+        }
+    }
     private void checkDependencies(Class<?> component, Stack<Class<?>> stack) {
         for (Type dependency : componentProviders.get(component).getDependencies()) {
-            Class<?> clazz = getComponentType(dependency);
-            checkExist(component, clazz);
+            Ref ref = Ref.of(dependency);
+            checkExist(component, ref.getComponentType());
             if (isContainer(dependency)) {
-                checkCycleDependencies(stack, clazz);
+                checkCycleDependencies(stack, ref.getComponentType());
             }
         }
     }
 
     private boolean isContainer(Type dependency) {
         return dependency instanceof Class<?>;
-    }
-
-    private Class<?> getComponentType(Type dependency) {
-        return isContainer(dependency) ? (Class<?>) dependency :
-                (Class<?>) ((ParameterizedType) dependency).getActualTypeArguments()[0];
     }
 
     private void checkExist(Class<?> component, Class<?> dependency) {
