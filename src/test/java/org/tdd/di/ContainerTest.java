@@ -163,8 +163,8 @@ public class ContainerTest {
 
             @Test
             void should_return_empty_when_get_if_provider_type_not_bind() throws NoSuchFieldException {
-                Optional<Provider<?>> provider = containerBuilder.build().get(
-                        (ParameterizedType)FieldInjectProvider.class.getDeclaredField("dependency").getGenericType());
+                Optional provider = containerBuilder.build().getType(
+                        FieldInjectProvider.class.getDeclaredField("dependency").getGenericType());
 
                 assertTrue(provider.isEmpty());
             }
@@ -177,7 +177,7 @@ public class ContainerTest {
                 ParameterizedType parameterizedType = new TypeWrapper<Provider<Component>>() {
                 }.getType();
 
-                Optional<?> provider = container.get(parameterizedType);
+                Optional<?> provider = container.getType(parameterizedType);
 
                 assertTrue(provider.isPresent());
                 assertSame(instance, ((Provider<Component>) provider.get()).get());
@@ -198,7 +198,7 @@ public class ContainerTest {
                 ParameterizedType parameterizedType = new TypeWrapper<List<Component>>() {
                 }.getType();
 
-                assertThrows(UnsupportedTypeException.class, () -> container.get(parameterizedType));
+                assertThrows(UnsupportedTypeException.class, () -> container.getType(parameterizedType));
             }
 
             @Test
@@ -288,8 +288,8 @@ public class ContainerTest {
             void should_not_throw_Exception_when_bind_if_cycle_dependency_via_provider() {
                 Container container = containerBuilder.bind(Component.class, ComponentDependentDependency.class)
                         .bind(Dependency.class, DependencyDependentProviderComponent.class).build();
-                Optional<Component> component = container.get(Component.class);
-                Optional<Dependency> dependency = container.get(Dependency.class);
+                Optional<?> component = container.getType(Component.class);
+                Optional<?> dependency = container.getType(Dependency.class);
 
                 assertTrue(component.isPresent());
                 assertTrue(dependency.isPresent());
