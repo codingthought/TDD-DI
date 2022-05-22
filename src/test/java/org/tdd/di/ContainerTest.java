@@ -40,7 +40,7 @@ public class ContainerTest {
                 };
                 containerBuilder.bind(Component.class, componentImpl);
 
-                assertSame(componentImpl, containerBuilder.build().get(Component.class).orElse(null));
+                assertSame(componentImpl, containerBuilder.build().getType(Component.class).orElse(null));
             }
 
             interface Component {
@@ -144,7 +144,7 @@ public class ContainerTest {
                 };
                 containerBuilder.bind(Dependency.class, dependencyImpl).bind(Component.class, componentClass);
 
-                Optional<Component> componentOpl = containerBuilder.build().get(Component.class);
+                Optional<Component> componentOpl = containerBuilder.build().getType(Component.class);
                 assertTrue(componentOpl.isPresent());
 
                 Object dependency = componentOpl.get().getDependency();
@@ -157,7 +157,7 @@ public class ContainerTest {
 
             @Test
             void should_return_empty_when_get_if_type_not_bind() {
-                Optional<Component> component = containerBuilder.build().get(Component.class);
+                Optional<?> component = containerBuilder.build().getType(Component.class);
                 assertTrue(component.isEmpty());
             }
 
@@ -237,8 +237,10 @@ public class ContainerTest {
 
             interface Component {
             }
+
             interface Dependency {
             }
+
             interface AnotherComponent {
             }
 
@@ -246,18 +248,22 @@ public class ContainerTest {
                 @Inject
                 Dependency dependency;
             }
+
             static class DependencyDependentComponent implements Dependency {
                 @Inject
                 Component component;
             }
+
             static class DependencyDependentAnotherComponent implements Dependency {
                 @Inject
                 AnotherComponent anotherComponent;
             }
+
             static class AnotherComponentDependentComponent implements AnotherComponent {
                 @Inject
                 Component component;
             }
+
             @Test
             void should_throw_Exception_when_bind_if_cycle_dependency() {
                 containerBuilder.bind(Component.class, ComponentDependentDependency.class)
