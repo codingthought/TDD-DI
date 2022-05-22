@@ -33,8 +33,12 @@ public class ContainerBuilder {
         private ParameterizedType containerType;
         private Class<T> componentType;
 
-        public static Ref<?> of(Type type) {
+        public static <T> Ref<T> of(Type type) {
             return new Ref<>(type);
+        }
+
+        public static <T> Ref<T> of(Class<T> componentType) {
+            return new Ref<>(componentType);
         }
 
         private Ref(Class<T> componentType) {
@@ -63,7 +67,7 @@ public class ContainerBuilder {
             return containerType;
         }
 
-        public Class<?> getComponentType() {
+        public Class<T> getComponentType() {
             return componentType;
         }
 
@@ -75,7 +79,7 @@ public class ContainerBuilder {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            Ref ref = (Ref) o;
+            Ref<?> ref = (Ref<?>) o;
             return Objects.equals(containerType, ref.containerType) && componentType.equals(ref.componentType);
         }
 

@@ -27,9 +27,9 @@ public class Container {
                 .map(provider -> () -> provider.getFrom(this));
     }
 
-    public Optional get(Ref ref) {
+    public <T> Optional<T> get(Ref<T> ref) {
         if (ref.isContainer()) {
-            return getBy(ref.getContainerType());
+            return (Optional<T>) getBy(ref.getContainerType());
         }
         return getBy(ref.getComponentType());
     }
